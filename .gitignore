@@ -1,0 +1,25 @@
+# Backend (Maven)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend (Next.js) – see also frontend/.gitignore
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# IDEs and OS
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.DS_Store
+Thumbs.db

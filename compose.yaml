@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: 'postgres:17.6'
+    environment:
+      - 'POSTGRES_DB=vetclinic'
+      - 'POSTGRES_USER=vetclinic'
+      - 'POSTGRES_PASSWORD=vetclinic'
+    ports:
+      - '5432:5432'
+    volumes:
+      - 'vetclinic_data:/var/lib/postgresql/data'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vetclinic -d vetclinic']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Full stack in containers, only with: docker compose --profile app up --build
+  # Without the profile (and for `./mvnw spring-boot:run`) only postgres starts.
+  backend:
+    profiles: ['app']
+    build: ./backend
+    environment:
+      - 'SPRING_DOCKER_COMPOSE_ENABLED=false'
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/vetclinic'
+      - 'SPRING_DATASOURCE_USERNAME=vetclinic'
+      - 'SPRING_DATASOURCE_PASSWORD=vetclinic'
+    ports:
+      - '8080:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fs http://localhost:8080/actuator/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  frontend:
+    profiles: ['app']
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  vetclinic_data:
