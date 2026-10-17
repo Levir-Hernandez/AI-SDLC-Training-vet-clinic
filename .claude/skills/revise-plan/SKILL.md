@@ -1,19 +1,33 @@
 ---
 name: revise-plan
-description: Dispatcher. Fixes findings from the PLAN_REVIEW.md of one area (backend, frontend or integration) by launching its planner subagent with revise-regular-plan.
-argument-hint: "<backend|frontend|integration> [B1, M2, m1, ...]"
+description: Fix the issues found in the latest plan review, optionally applying the user's decisions. Use when the review verdict is not READY.
+argument-hint: "[codes e.g. B1 M2] [-- context: answers or decisions]"
+context: fork
+agent: planner
+allowed-tools: Read, Glob, Grep, Write, Edit, Skill
 ---
 
 # Revise Plan
 
-Run in the main session (`claude`), since it launches subagents.
+## Arguments
 
-## 1. Check and run
+- **Codes** (optional): findings to fix, by current-pass code, e.g. `B1 M2 m3`. Without codes: all open blockers and majors, plus minors when cheap.
+- **Context** (optional, after `--`): answers to `needs context` questions or decisions from the user, e.g. `-- owners may cancel only before Scheduled`. Treat it as authoritative alongside `TASK.md`.
 
-- First word of `$ARGUMENTS`: `backend`, `frontend` or `integration`; otherwise stop and list them.
-- The rest, if any: comma-separated finding codes (`B1`, `M2`, `m1`) from the area's current `PLAN_REVIEW.md`. None → all open blockers and majors.
-- `context/<area>/PLAN_REVIEW.md` must exist, otherwise stop: `Run validate-plan <area> first`.
+## Steps
 
-Launch `<area>-planner`: "Run revise-regular-plan <findings>." Subagent error → change nothing and report it.
+1. Read `context/PLAN_REVIEW.md`, `context/PLAN.md` and `TASK.md`. Missing review then stop: `Run review-plan first`. An unknown code then stop and name it.
+2. For each selected finding, apply its **Suggested fix** (or a better one that resolves the same **Problem**) at every location in **Targets**.
+   - `needs context` finding: fix it only if the context argument answers it; otherwise leave it untouched.
+   - Disagree with a finding: leave it `open` and record why in `PROGRESS.md`.
+3. Keep the plan valid under the `generate-plan` rules: at most 20 increments, dependencies only backward, `in-progress` and `done` increments unchanged. Update the Backend API Summary, Frontend Views Summary and every affected **Covers** and **Depends on**. Record new decisions from the context under Assumptions.
+4. In `PLAN_REVIEW.md`, change the **Status** of each finding you fixed to `fixed` and `- **Open:** <b> blockers, <M> majors, <m> minors` line. Do not edit other fields, codes or the verdict.
+5. Run `update-progress`, then `update-changelog`.
 
-**Reply:** the `RESOLVED | NEEDS-CONTEXT | SKIPPED` lines, next step: `validate-plan <area>`.
+## Reply
+
+```
+Fixed: B1 <title>; M2 <title> | None
+Left open: <code> <reason> | None
+Run review-plan to re-check.
+```

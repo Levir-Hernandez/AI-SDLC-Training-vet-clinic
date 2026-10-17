@@ -1,26 +1,126 @@
 ---
 name: generate-plan
-description: Dispatcher. Generates the plan of one area (backend, frontend or integration) by launching its planner subagent with the matching skill.
-argument-hint: "<backend|frontend|integration>"
+description: Create or rebuild the implementation plan from the task requirements. Use to start planning or to replan after the requirements change.
+context: fork
+agent: planner
 ---
 
 # Generate Plan
 
-Run in the main session (`claude`), since it launches subagents.
+## Steps
 
-## 1. Check and run
+1. Read `TASK.md` and `CLAUDE.md`, then any `.claude/rules/*`. If `TASK.md` or `CLAUDE.md` is missing, stop and name the missing file.
+2. Inspect `backend/` and `frontend/`, skipping dependencies, generated files and build artifacts (`node_modules/`, `.next/`, `target/`).
+3. If `context/PLAN.md` exists, read it and note every `in-progress` and `done` increment. If `context/PLAN_REVIEW.md` exists, read it and address each finding in the new plan.
+4. Write `context/PLAN.md` in the format below, following the rules.
+5. Run the `update-progress` skill, then the `update-changelog` skill.
 
-`$ARGUMENTS` must be `backend`, `frontend` or `integration`; otherwise stop and list them.
+## Format
 
-| Area | Requires | Runs |
-|---|---|---|
-| `backend` | `TASK.md` | launch `backend-planner`: "Run generate-regular-plan." |
-| `frontend` | `TASK.md` and `## API Contract` in `context/backend/PLAN.md` | launch `frontend-planner`: "Run generate-regular-plan." |
-| `integration` | `TASK.md`, `context/backend/PLAN.md`, `context/frontend/PLAN.md` | launch `integration-planner`: "Run generate-integration-plan." |
+```markdown
+# Implementation Plan — <system name>
 
-- Missing input → stop and say what to run first, e.g. `Run generate-plan backend first`.
-- Subagent error → change nothing and report it.
+## Overview
+Goal, stack, number of increments and how to run both apps locally, in 3–5 lines.
 
-The subagent logs its own `PROGRESS.md` and `CHANGELOG.md`; add nothing.
+## Repository Findings
+What the skeleton (I0) already provides, and the conventions every increment must follow.
 
-**Reply:** summary of the subagent output, next step: `validate-plan <area>`.
+## Architecture Decisions
+Short bullets: package and folder layout, auth flow, lifecycle handling, API conventions.
+
+## Backend API Summary
+| Method | Path | Roles | Increment |
+
+## Frontend Views Summary
+| Component | Route | Roles | Increment |
+
+## Increments
+
+### I<n> — <Short increment title>
+
+- **Status:** `pending` | `in-progress` | `done` | `blocked: <reason>`
+- **Goal:** <One line describing the observable outcome.>
+- **Covers:** <`TASK.md` references: flows, business rules, acceptance criteria>
+- **Depends on:** <I0 and/or lower-numbered increments>
+
+#### Files
+
+**Backend**
+- **Create:**
+  - `<path>`: <purpose>
+- **Modify:**
+  - `<path>`: <what changes>
+- **Delete:**
+  - `<path>`: <why>
+
+**Frontend**
+- **Create:**
+  - `<path>`: <purpose>
+- **Modify:**
+  - `<path>`: <what changes>
+- **Delete:**
+  - `<path>`: <why>
+
+#### Implementation Tasks
+<One numbered item per file. Simple file → one line. Complex file → sub-bullets per method, bean or config (backend), or component, hook or action (frontend).>
+
+**Backend**
+1. `<Class>`: <responsibility>
+   - `<method / bean / config>`: <behavior, inputs → outputs, rules enforced>
+2. `<File>`: <one-line change>
+
+**Frontend**
+1. `<Component / module>`: <responsibility>
+   - `<function / hook / action>`: <behavior, inputs → outputs>
+2. `<File>`: <one-line change>
+
+#### Expected Interfaces and Outputs
+
+**Backend**
+- `<METHOD /path>` `<request>` → `<status>` `<response shape>`; `<invalid case>` → `<status>` `<error code>`.
+- `<config file>` contains `<specific value>`.
+
+**Frontend**
+- `<route>` <condition> → <observable result>.
+- `<cookie / storage / UI element>` has `<specific property or value>`.
+
+#### Automated Tests
+<One plain sentence: what the tests prove.>
+
+**Backend**
+- `<TestClass>` (<unit | slice | integration>, <key setup>)
+  - **Success:** <scenario>
+  - **Rejections:** <scenario> → <expected error or status>; …
+
+**Frontend**
+- `<TestFile>` (<unit | component | e2e>, <key setup>)
+  - **Success:** <scenario>
+  - **Rejections:** <scenario> → <expected result>; …
+<or: "None in this increment; covered by lint, build and manual checks in Completion Criteria.">
+
+#### Completion Criteria
+<2–4 sentences: how this increment is verified. Say what the automated checks prove and what the live checks confirm on the running apps.>
+
+**Automated**
+
+Backend:
+- `<command>` → <expected result>
+
+Frontend:
+- `<command>` → <expected result>
+
+**Manual** (both apps running)
+- `<command or browser action>` → <expected result>
+```
+
+## Rules
+
+- **Scope:** Every flow, business rule and acceptance criterion in `TASK.md` appears in at least one increment's **Covers**. Add nothing that is not in `TASK.md`.
+- **Size:** At most 20 increments. Prefer vertical slices; merge trivial work and split oversized or unrelated flows.
+- **Order:** Authentication, roles and seed data first; then core records in dependency order; then the central workflow and its lifecycle transitions; then payments, history and search; UI polish and a final acceptance pass last.
+- **Dependencies:** An increment depends only on I0 or lower-numbered increments. If it needs later work, move that work earlier and renumber, or re-split so the dependency disappears. Never leave a forward dependency or a placeholder for future work.
+- **Stability:** Every increment leaves both apps building and working.
+- **Regeneration:** Copy `in-progress` and `done` increments unchanged, keeping their numbers. Renumber, reorder or replan only `pending` and `blocked` increments, and place them after the preserved ones when dependencies allow.
+- **Status:** New increments start as `pending`.
+- **Brevity:** Use signatures, paths and one-line sketches; never write full code.

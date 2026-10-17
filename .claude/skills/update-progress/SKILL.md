@@ -1,21 +1,15 @@
 ---
 name: update-progress
-description: Appends an entry to the calling agent's PROGRESS.md (execution journal). Append only; never edits or deletes entries.
+description: Record the step just completed in the project's progress journal. Use at the end of every planning step.
 ---
 
 # Update Progress
 
-| Agent | Folder |
-|---|---|
-| `backend-planner` | `context/backend/` |
-| `frontend-planner` | `context/frontend/` |
-| `integration-planner` | `context/integration/` |
-
-1. Open `PROGRESS.md` in your folder; if missing, create it with `# Progress`.
+1. Open `context/PROGRESS.md`; if missing, create it with `# Progress`.
 2. Append one entry per action:
 
    ```markdown
-   ## YYYY-MM-DD — <agent or area> — <action>
+   ## YYYY-MM-DD — <action>
    - Status: <plan generated | plan revised | review verdict>
    - Details: <what was done, files touched, finding codes and titles if any>
 
@@ -34,4 +28,4 @@ description: Appends an entry to the calling agent's PROGRESS.md (execution jour
 
 3. Change sections follow the `update-changelog` rules: one past-tense sentence per change, readable without opening the plan; omit empty sections.
 
-Actions: `Plan generated`, `Validation`, `Revision: <code> - <title>`, `Integration check`.
+Actions: `Plan generated`, `Review`, `Revision: <code> - <title>`.

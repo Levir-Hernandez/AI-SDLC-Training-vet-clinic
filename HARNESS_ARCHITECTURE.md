@@ -1,66 +1,56 @@
 # Harness Architecture
 
-How the Claude Code harness in `.claude/` turns `TASK.md` into three implementation plans: backend, frontend and integration.
+How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed implementation plan. This file is for humans; no agent, skill or rule reads it.
 
 ## 1. Structure
 
 ```
 .claude/
-├── agents/                       Planner subagents; each reads TASK.md from its own perspective
-│   ├── backend-planner.md        Data, operations, rules → context/backend/PLAN.md (+ API Contract)
-│   ├── frontend-planner.md       What the user sees and does → context/frontend/PLAN.md
-│   └── integration-planner.md    Run, configuration, contract → context/integration/PLAN.md
-├── skills/
-│   ├── generate-plan/            Dispatcher <area>: launches the area planner to write its plan
-│   ├── validate-plan/            Dispatcher <area>: launches the area planner to review its plan
-│   ├── revise-plan/              Dispatcher <area> [codes]: launches the area planner to fix findings
-│   ├── generate-regular-plan/    Backend/frontend plan; defines the plan format
-│   ├── generate-integration-plan/  Integration increments + Suggested Integration Adjustments
-│   ├── validate-regular-plan/    Writes PLAN_REVIEW.md; defines the review format and verdicts
-│   ├── revise-regular-plan/      Fixes findings in the agent's own plan
-│   ├── validate-integration/     Moves the adjustments into the backend/frontend reviews
-│   ├── update-progress/          Appends to PROGRESS.md
-│   └── update-changelog/         Summarizes PROGRESS.md into CHANGELOG.md
-└── rules/                        Path-scoped coding rules, loaded when matching files are touched
-    ├── java-coder.md             backend/src/main, pom.xml
-    ├── java-tester.md            backend/src/test
-    ├── react-coder.md            frontend/app, components, lib, config
-    ├── react-tester.md           frontend tests
-    └── docker-expert.md          compose.yaml, Dockerfiles
+├── agents/                 Who: role, boundaries, hierarchy of truth, judgment
+│   ├── planner.md          Writes and revises context/PLAN.md
+│   └── plan-reviewer.md    Reviews the plan → context/PLAN_REVIEW.md (never edits the plan)
+├── skills/                 How: steps, formats, replies (plan skills run forked in their agent)
+│   ├── generate-plan/      Plan format; at most 20 vertical increments          (planner)
+│   ├── review-plan/        Checks, severities, verdict, decisions log           (plan-reviewer)
+│   ├── revise-plan/        Fixes findings: [codes] [-- context]                 (planner)
+│   ├── update-progress/    Appends an entry to PROGRESS.md
+│   └── update-changelog/   Merges new entries into CHANGELOG.md [Unreleased]
+└── rules/                  Path-scoped general guidelines for the implementer
+    ├── java-coder.md       backend/src/main, pom.xml
+    ├── java-tester.md      backend/src/test
+    ├── react-coder.md      frontend sources
+    └── react-tester.md     frontend tests
 ```
 
-Output per area in `context/<backend|frontend|integration>/`: `PLAN.md`, `PLAN_REVIEW.md`, `PROGRESS.md`, `CHANGELOG.md`.
+| File | Role |
+|---|---|
+| `TASK.md` | Requirements: application, flows, business rules, technology constraints, acceptance criteria, out of scope |
+| `CLAUDE.md` | Where things are, how to run and test, general agent behavior |
+| `context/PLAN.md` | The single plan: increments with status, API and views summaries, assumptions |
+| `context/PLAN_REVIEW.md` | Findings by severity, verdict, resolved findings, decisions log |
+| `context/PROGRESS.md` | Append-only journal, one entry per action (Added / Changed / Fixed / Removed) |
+| `context/CHANGELOG.md` | Keep a Changelog summary built from the journal |
 
 ## 2. Key ideas
 
-- **No task splitting.** There is no lead planner; every planner reads the whole `TASK.md` and keeps what its expertise needs (e.g. "only the assigned vet" is an authorization check for the backend and a hidden button for the frontend).
-- **Dispatchers vs. regular skills.** `generate-plan`, `validate-plan` and `revise-plan` run in the main session (`claude`) and launch the subagent; the `*-regular-plan` skills do the work inside it.
-- **Each area owns its files.** A planner never edits another area's plan or review. The integration planner proposes changes to backend/frontend as **Suggested Integration Adjustments**; `validate-integration` turns them into findings in those reviews.
-- **Verdicts.** `READY` (no open blockers or majors) · `READY WITH MINOR CHANGES` (1–2 majors) · `REVISE BEFORE IMPLEMENTATION` (any blocker or >2 majors). Minors never block.
+- **One plan, one source of truth.** Each increment is a vertical slice (backend + frontend + tests), so nothing has to be synchronized between plans.
+- **Agents hold judgment, skills hold procedure.** Agents define role, boundaries, hierarchy of truth and judgment; skills define steps, formats and replies.
+- **Separate author and reviewer.** The reviewer never edits the plan (no `Edit` tool). The planner only marks findings `fixed` and appends user context to the decisions log.
+- **Strict ordering.** Increments depend only on I0 (the skeleton) or earlier increments; forward dependencies are reordered or re-split, never left as placeholders.
+- **Consistency focus in review.** Increment order, backend API definitions and frontend usage of that API are checked against each other and against the `TASK.md` state diagram.
+- **User decisions are recorded.** Context passed to `revise-plan` after `--` is logged verbatim in the decisions log and carried forward on every review pass.
+- **Preservation.** Regeneration never changes `in-progress` or `done` increments.
+- **Verdicts.** `READY` (no open blockers or majors) · `READY WITH MINOR CHANGES` (1–2 open majors) · `REVISE BEFORE IMPLEMENTATION` (any blocker or more than 2 majors). `needs context` counts as open.
+- **Simple runtime.** H2 in-memory, JWT auth (HttpOnly cookie on the frontend), no Docker. Each increment is verified with `./mvnw verify`, `npm run lint`, `npm run build` and a manual check with both apps running.
 
 ## 3. Flow
 
 ```
- 1. generate-plan backend          generate-plan frontend
- 2. validate-plan backend          validate-plan frontend
- 3. revise-plan backend            revise-plan frontend      → repeat 2–3 until no blockers/majors
-
- 4. generate-plan integration      increments + Suggested Integration Adjustments
- 5. validate-plan integration      reviews only the integration plan (may move an adjustment into an increment)
- 6. revise-plan integration        → repeat 5–6 until no blockers/majors
-
- 7. validate-integration           adjustments → findings in backend/frontend PLAN_REVIEW.md;
-                                   removed from the integration plan
- 8. revise-plan backend|frontend   → validate-plan backend|frontend until no blockers/majors
-
- ✓ Backend, frontend and integration plans are READY and consistent with each other.
+1. generate-plan              (planner)        → PLAN.md
+2. review-plan                (plan-reviewer)  → PLAN_REVIEW.md + verdict
+3. revise-plan [codes] [-- context]  (planner) → PLAN.md, findings marked fixed, context logged
+   repeat 2–3 until READY
+Each step ends with update-progress → update-changelog.
 ```
 
-| Step | Writes |
-|---|---|
-| generate-plan `<area>` | `context/<area>/PLAN.md` |
-| validate-plan `<area>` | `context/<area>/PLAN_REVIEW.md` |
-| revise-plan `<area>` | `context/<area>/PLAN.md`, finding statuses in its review |
-| validate-integration | backend/frontend `PLAN_REVIEW.md`, integration `PLAN.md` (removes section 7) |
-
-Every step also appends to the area's `PROGRESS.md` and `CHANGELOG.md`.
+Findings use positional codes (`B1`, `M1`, `m1`) renumbered every pass; titles stay stable so findings can be tracked across passes.

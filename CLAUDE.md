@@ -4,41 +4,64 @@
 
 This repository contains the Vet Clinic Service described in `TASK.md`.
 
-- `TASK.md` defines the required behavior, acceptance criteria, and scope (codes UF, BR, UI, TC, AC).
-- `context/<backend|frontend|integration>/PLAN.md` hold the increments to implement, each with its status.
-- Each folder in `context/` (`backend`, `frontend`, `integration`) also holds `PLAN_REVIEW.md` (latest review and verdict), `PROGRESS.md` (journal) and `CHANGELOG.md` (summary).
-- `.claude/agents/` holds the backend, frontend and integration planners, each reading `TASK.md` directly from its own perspective; `.claude/skills/` their skills.
-- `.claude/rules/` holds path-scoped coding rules: `java-coder`, `java-tester`, `react-coder`, `react-tester`, `docker-expert`.
-
-Stack: Java 21 + Spring Boot 4.1 (Maven Wrapper) in `backend/`, Next.js 16 + React 19 + TypeScript in `frontend/`, PostgreSQL 17 from the root `compose.yaml`, Flyway migrations, Testcontainers for integration tests.
+Stack: Java 21 + Spring Boot 4.1 (Maven Wrapper) in `backend/`, Next.js 16 + React 19 + TypeScript + Tailwind CSS in `frontend/`, H2 in-memory database (schema from JPA entities, data resets on restart). No Docker.
 
 ---
 
-## Repository Layout
+## Where to Find Things
 
-```
-backend/    Spring Boot application (package root: com.vetclinic)
-frontend/   Next.js App Router application
-compose.yaml  Local PostgreSQL used by `spring-boot:run` (Spring Boot Docker Compose support)
-context/    Planning and progress artifacts
-.claude/    Planner agents, skills and scoped rules
-```
+| What | Where |
+|---|---|
+| Requirements, rules, acceptance criteria, scope | `TASK.md` |
+| Implementation plan and increment status | `context/PLAN.md` |
+| Latest plan review, verdict and decisions log | `context/PLAN_REVIEW.md` |
+| Journal and summary of steps | `context/PROGRESS.md`, `context/CHANGELOG.md` |
+| Agents (`planner`, `plan-reviewer`) | `.claude/agents/` |
+| Skills (plan and journal workflows) | `.claude/skills/` |
+| Path-scoped coding and testing rules | `.claude/rules/` (`java-coder`, `java-tester`, `react-coder`, `react-tester`) |
+| Backend code / tests (package root `com.vetclinic`) | `backend/src/main/java/`, `backend/src/test/java/` |
+| Backend configuration | `backend/src/main/resources/application.yml`, `backend/pom.xml` |
+| Frontend routes / shared components / API client | `frontend/app/`, `frontend/components/`, `frontend/lib/` |
+| Frontend configuration | `frontend/package.json`, `frontend/next.config.ts`, `frontend/eslint.config.mjs` |
+
+Skip generated folders when searching: `backend/target/`, `frontend/node_modules/`, `frontend/.next/`.
 
 ---
 
-## Commands
+## Run
 
-| Purpose                     | Command                                         |
-|-----------------------------|-------------------------------------------------|
-| Start database only         | `docker compose up -d`                          |
-| Full stack in containers   | `docker compose --profile app up --build`       |
-| Run backend                 | `cd backend && ./mvnw spring-boot:run`          |
-| Build + test backend        | `cd backend && ./mvnw verify`                   |
-| Run frontend                | `cd frontend && npm run dev`                    |
-| Build / lint frontend       | `cd frontend && npm run build` / `npm run lint` |
-| Health check                | `GET http://localhost:8080/api/health`          |
+| App | Command | URL |
+|---|---|---|
+| Backend | `cd backend && ./mvnw spring-boot:run` (Windows: `mvnw.cmd spring-boot:run`) | http://localhost:8080 |
+| Frontend | `cd frontend && npm install` (first time), then `npm run dev` | http://localhost:3000 |
 
-Docker must be running for both `spring-boot:run` (compose) and `./mvnw verify` (Testcontainers).
+- Start the backend first, then the frontend, then open http://localhost:3000.
+- The frontend reads the backend URL from `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:8080`).
+- The backend allows CORS only from the origin in `app.cors.allowed-origins` (`application.yml`).
+- Data lives in memory: every backend restart starts from the seeded demo data.
+
+## Access
+
+| Resource | URL |
+|---|---|
+| Health check | `GET http://localhost:8080/api/health` |
+| Swagger UI | http://localhost:8080/swagger-ui.html |
+| OpenAPI JSON | http://localhost:8080/v3/api-docs |
+| Actuator health | http://localhost:8080/actuator/health |
+
+Demo accounts come from the backend seed data; see `TASK.md` and the seeder for credentials.
+
+## Test and Verify
+
+| Check | Command |
+|---|---|
+| Backend build + all tests | `cd backend && ./mvnw verify` |
+| Single backend test class | `cd backend && ./mvnw test -Dtest=ClassNameTests` |
+| Frontend lint | `cd frontend && npm run lint` |
+| Frontend production build | `cd frontend && npm run build` |
+| Frontend tests (if a test suite exists) | `cd frontend && npm test` |
+
+An increment is done only when the checks above pass and its manual check works with both apps running.
 
 ---
 
@@ -48,8 +71,8 @@ Docker must be running for both `spring-boot:run` (compose) and `./mvnw verify` 
 - **Prefer the smallest sufficient solution.** Meet the acceptance criteria without speculative features, abstractions, or dependencies.
 - **Minimize blast radius.** Change only the files required by the current task or approved increment. Do not perform drive-by refactors.
 - **Respect existing conventions.** Match the established package structure, naming, style, and testing patterns.
-- **Make decisions traceable.** State assumptions, trade-offs, deviations, and unresolved questions explicitly, and reference AC/BR numbers from `TASK.md`.
-- **Do not guess through conflicts.** Stop and report when `TASK.md`, the plans, or existing code disagree.
+- **Make decisions traceable.** State assumptions, trade-offs, deviations, and unresolved questions explicitly, citing the relevant `TASK.md` section or criterion.
+- **Do not guess through conflicts.** Stop and report when `TASK.md`, the plan, or existing code disagree.
 - **Verify before claiming done.** Run the relevant build and tests and report their actual results.
 - **Never commit secrets** or machine-specific absolute paths.
 
@@ -57,14 +80,8 @@ Docker must be running for both `spring-boot:run` (compose) and `./mvnw verify` 
 
 ## Planning
 
-See `HARNESS_ARCHITECTURE.md` for the `.claude/` structure and the full flow.
+From the main session:
 
-Each planner reads `TASK.md` itself from its own perspective. From the main session (`claude`), run per area (`backend`, `frontend`, `integration`, in that order, since each builds on the previous plans):
-
-1. `generate-plan <area>`
-2. `validate-plan <area>` (only that area's `PLAN_REVIEW.md` changes)
-3. `revise-plan <area> [codes]` while findings are open, then `validate-plan <area>` again
-
-The integration plan also holds **Suggested Integration Adjustments**: small changes to `pending` backend or frontend increments. Once `validate-plan integration` is READY, run `validate-integration`: it moves them as findings into the backend and frontend reviews and removes them from the integration plan. Then `revise-plan backend|frontend` and validate those areas again.
-
-Each dispatcher launches `<area>-planner` with its `*-regular-plan` skill (`generate-integration-plan` for integration).
+1. `generate-plan` (planner) → `context/PLAN.md`
+2. `review-plan` (plan-reviewer) → `context/PLAN_REVIEW.md`
+3. While the verdict is not `READY`: `revise-plan [codes] [-- context]`, then `review-plan` again.
