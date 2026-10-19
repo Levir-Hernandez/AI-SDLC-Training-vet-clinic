@@ -52,6 +52,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(detail);
     }
 
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(org.springframework.beans.TypeMismatchException ex,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        return ResponseEntity.badRequest().body(problem(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
+                "Invalid value for parameter"));
+    }
+
     private static ProblemDetail problem(HttpStatus status, String code, String message) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, message);
         detail.setProperty("code", code);

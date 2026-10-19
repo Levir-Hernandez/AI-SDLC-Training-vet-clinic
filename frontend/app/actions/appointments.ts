@@ -1,12 +1,57 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ApiError, apiPost } from "@/lib/api";
+import { ApiError, apiPatch, apiPost } from "@/lib/api";
 import type { Appointment, CreateAppointmentRequest } from "@/lib/types";
 
 export type BookingResult = { error?: string; slotTaken?: boolean; appointment?: Appointment };
 export type CancelResult = { error?: string; reasonError?: string };
 export type ConfirmResult = { error?: string; expired?: boolean };
+export type ObservationsState = { error?: string; saved?: boolean };
+
+async function runVisitAction(id: number, action: "start" | "finish"): Promise<void> {
+  try {
+    await apiPost<Appointment>(`/api/appointments/${id}/${action}`);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    // The page reloads with the current state and allowed actions, so a stale click is harmless.
+  }
+  revalidatePath(`/appointments/${id}`);
+  redirect(`/appointments/${id}`);
+}
+
+/** Form-action variant used by the Start button on the detail page. */
+export async function startAppointment(id: number, formData: FormData): Promise<void> {
+  void formData;
+  await runVisitAction(id, "start");
+}
+
+/** Form-action variant used by the Finish button on the detail page. */
+export async function finishAppointment(id: number, formData: FormData): Promise<void> {
+  void formData;
+  await runVisitAction(id, "finish");
+}
+
+/** Saves the observations text; used with `useActionState`. */
+export async function saveObservations(
+  id: number,
+  _previous: ObservationsState,
+  formData: FormData,
+): Promise<ObservationsState> {
+  const observations = String(formData.get("observations") ?? "");
+  try {
+    await apiPatch<Appointment>(`/api/appointments/${id}/observations`, { observations });
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    const field = error.fieldErrors.find((e) => e.field === "observations");
+    if (field) return { error: field.message };
+    if (error.code === "OBSERVATIONS_LOCKED") return { error: "Observations can no longer be edited." };
+    return { error: error.message };
+  }
+  revalidatePath(`/appointments/${id}`);
+  return { saved: true };
+}
 
 /** Books the appointment; on success redirects to its detail page. */
 export async function bookAppointment(

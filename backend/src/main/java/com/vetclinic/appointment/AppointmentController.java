@@ -1,22 +1,27 @@
 package com.vetclinic.appointment;
 
+import com.vetclinic.appointment.dto.AppointmentFilter;
 import com.vetclinic.appointment.dto.AppointmentResponse;
 import com.vetclinic.appointment.dto.CancelRequest;
 import com.vetclinic.appointment.dto.CreateAppointmentRequest;
+import com.vetclinic.appointment.dto.ObservationsRequest;
 import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -50,6 +55,27 @@ public class AppointmentController {
         return actions.cancel(CurrentUser.from(authentication), id, request.reason());
     }
 
+    /** Assigned veterinarian or reception starts the visit. */
+    @PostMapping("/{id}/start")
+    @PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
+    public AppointmentResponse start(Authentication authentication, @PathVariable Long id) {
+        return actions.start(CurrentUser.from(authentication), id);
+    }
+
+    @PostMapping("/{id}/finish")
+    @PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
+    public AppointmentResponse finish(Authentication authentication, @PathVariable Long id) {
+        return actions.finish(CurrentUser.from(authentication), id);
+    }
+
+    /** Observations stay editable until the appointment is closed or cancelled. */
+    @PatchMapping("/{id}/observations")
+    @PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
+    public AppointmentResponse observations(Authentication authentication, @PathVariable Long id,
+                                            @Valid @RequestBody ObservationsRequest request) {
+        return actions.updateObservations(CurrentUser.from(authentication), id, request.observations());
+    }
+
     /** Reception books a walk-in; the service rejects veterinarians. */
     @PostMapping
     @PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
@@ -61,8 +87,10 @@ public class AppointmentController {
 
     @GetMapping
     public PageResponse<AppointmentResponse> list(Authentication authentication,
+                                                  @RequestParam(required = false) List<AppointmentStatus> status,
                                                   @PageableDefault(size = 20) Pageable pageable) {
-        return queries.list(CurrentUser.from(authentication), null, pageable);
+        AppointmentFilter filter = new AppointmentFilter(status, null, null, null);
+        return queries.list(CurrentUser.from(authentication), filter, pageable);
     }
 
     @GetMapping("/{id}")

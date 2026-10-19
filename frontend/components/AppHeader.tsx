@@ -23,7 +23,10 @@ const NAV: Record<Role, { href: string; label: string }[]> = {
     { href: "/reception/veterinarians", label: "Veterinarians" },
     { href: "/reception/book", label: "Book walk-in" },
   ],
-  VETERINARIAN: [{ href: "/", label: "Home" }],
+  VETERINARIAN: [
+    { href: "/", label: "Home" },
+    { href: "/vet/appointments", label: "My appointments" },
+  ],
 };
 
 export async function AppHeader() {

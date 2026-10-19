@@ -291,3 +291,22 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I10: Visit: start, finish and observations
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST /api/appointments/{id}/start`, `POST /{id}/finish` and `PATCH /{id}/observations` (veterinarian or reception); `GET /api/appointments?status=A,B` filters by status within the caller's scope; an unknown status returns `400 VALIDATION_FAILED`.
+- Frontend: `/vet/appointments` (assigned Scheduled/In progress/Finished, ordered by start time), vet role layout guard, vet nav link and home redirect, Start/Finish buttons on the appointment detail, and an `ObservationsEditor` shown only when `EDIT_OBSERVATIONS` is allowed.
+- Completion criteria: all met. `./mvnw verify` passes; `npm run lint` and `npm run build` pass; the manual flow was checked live against the running backend through the API: walk-in with vet.ana, ana lists it, luis sees an empty list and gets 404 on its URL, finish before start gives 409, start gives IN_PROGRESS, observations give 200, finish gives FINISHED. The browser UI was not clicked through; it was verified by lint/build only.
+
+### Decisions and deviations
+- Added a `handleTypeMismatch` override in `GlobalExceptionHandler` so a bad enum query value returns the plan's `400 VALIDATION_FAILED` code (the Spring default had no `code`). Small addition outside the listed files, required by the "unknown `status` -> 400 VALIDATION_FAILED" output.
+- Start/Finish server actions swallow API errors and reload the detail page, which then shows the current state and allowed actions.
+- No open review findings targeted I10.
+
+### Tests
+- Backend: 319 run, 0 failed, 0 skipped (7 new cases in AppointmentControllerTests). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

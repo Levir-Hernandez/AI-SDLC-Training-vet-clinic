@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { confirmFromDetail } from "@/app/actions/appointments";
+import { confirmFromDetail, finishAppointment, startAppointment } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/AppointmentActions";
+import { ObservationsEditor } from "@/components/ObservationsEditor";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError, apiGet } from "@/lib/api";
@@ -64,7 +65,18 @@ async function AppointmentDetail({ params }: { params: Promise<{ id: string }> }
         <Row label="Observations">{a.observations || "None"}</Row>
         {a.cancelReason ? <Row label="Cancel reason">{a.cancelReason}</Row> : null}
       </dl>
-      <AppointmentActions actions={a.allowedActions} appointmentId={a.id} handlers={{ CONFIRM: confirmFromDetail.bind(null, a.id) }} />
+      <AppointmentActions
+        actions={a.allowedActions}
+        appointmentId={a.id}
+        handlers={{
+          CONFIRM: confirmFromDetail.bind(null, a.id),
+          START: startAppointment.bind(null, a.id),
+          FINISH: finishAppointment.bind(null, a.id),
+        }}
+      />
+      {a.allowedActions.includes("EDIT_OBSERVATIONS") ? (
+        <ObservationsEditor appointmentId={a.id} initial={a.observations ?? ""} />
+      ) : null}
     </>
   );
 }
