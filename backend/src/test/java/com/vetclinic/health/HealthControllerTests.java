@@ -10,10 +10,11 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.vetclinic.config.ClockConfig;
 import com.vetclinic.config.SecurityConfig;
 
 @WebMvcTest(HealthController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, ClockConfig.class})
 class HealthControllerTests {
 
 	@Autowired

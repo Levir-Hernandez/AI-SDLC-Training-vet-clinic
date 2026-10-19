@@ -1,14 +1,26 @@
-import { BackendStatus } from "./backend-status";
+import { Suspense } from "react";
+import { ROLE_LABEL } from "@/components/AppHeader";
+import { requireRole } from "@/lib/auth";
+
+// Role landing screens are added by later increments; until then show a welcome.
+async function Welcome() {
+  const user = await requireRole("OWNER", "RECEPTIONIST", "VETERINARIAN");
+  return (
+    <>
+      <h1 className="text-3xl font-semibold">Welcome, {user.displayName}</h1>
+      <p className="text-zinc-600 dark:text-zinc-400">
+        Signed in as {ROLE_LABEL[user.role]}.
+      </p>
+    </>
+  );
+}
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-16">
-      <h1 className="text-3xl font-semibold">Vet Clinic</h1>
-      <p className="text-zinc-600 dark:text-zinc-400">
-        Project skeleton. Features are delivered through the increments in
-        context/PLAN.md.
-      </p>
-      <BackendStatus />
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-12">
+      <Suspense fallback={<p className="text-zinc-500">Loading...</p>}>
+        <Welcome />
+      </Suspense>
     </main>
   );
 }

@@ -176,3 +176,26 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 4: Authentication, roles and demo seed
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST /api/auth/login` issues an HS256 JWT (`sub`, `role`, `ownerId`/`veterinarianId`, 8 h expiry); `GET /api/auth/me` returns the caller. All other endpoints except health, Swagger/OpenAPI and actuator health require a valid token; 401/403 are `application/problem+json` with `code`; a single `GlobalExceptionHandler` maps domain, validation (`VALIDATION_FAILED` with `errors[]`), access-denied and unexpected errors. `CurrentUser.from(Authentication)`, `@EnableMethodSecurity`, OpenAPI bearer scheme and `DemoDataSeeder` (receptionist, two vets with accounts and Mon-Fri schedules, four services; idempotent) are in place.
+- Frontend: `/login` page with server action `signIn`, token stored only in the `vc_session` HttpOnly/Secure/SameSite=Lax cookie, `proxy.ts` redirect to `/login`, `requireRole`/`getCurrentUser`, server-only typed API layer (`ApiError` with field errors), `AppHeader` with role and sign-out, shared `FormField` and `ErrorMessage`, role welcome on `/`. `backend-status.tsx` removed.
+
+### Decisions and deviations
+- Completion criteria (all met): `./mvnw verify` BUILD SUCCESS; `npm run lint` clean; `npm run build` succeeds. Live check with both apps (curl): `/` redirects to `/login`; `/api/auth/me` without token gives 401 problem+json; sign-in as `reception` via the real server action returned 303 to `/` and set `vc_session` flagged HttpOnly and Secure (cookie jar), and the home page then rendered the header with Sign out. Not exercised: browser DevTools view and the `vet.ana` sign-in via the UI (covered by `AuthFlowIntegrationTests` on the API). The plan file is guarded, so criteria are recorded here and the status set via script.
+- `TokenService.issue` returns `IssuedToken(value, expiresAt)` instead of a bare `String`, so login can return `expiresAt` for the cookie expiry.
+- `CurrentUserResponse` also carries `displayName` (used by the header).
+- Seeding is switchable with `app.seed.enabled` (default true). Tests set it to false in `src/test/resources/application.properties` (together with a test JWT secret) because several tests save services/vets with unique codes in the shared in-memory H2; `AuthFlowIntegrationTests` and `DemoDataSeederTests` construct and run the seeder explicitly.
+- JWT expiry is validated against the injected `Clock` with zero skew. 401/403 filter responses are written by `JsonAuthHandlers` (plain class built in `SecurityConfig`) from a map, to avoid depending on ProblemDetail mixins in the security filter chain.
+- `AppHeader` nav currently only has "Home" per role; later increments add their links (avoids dead links). `app/page.tsx` shows a welcome because the role routes do not exist yet. `Suspense` boundaries wrap cookie-reading components because `cacheComponents` is enabled. On a backend 401 during render, `apiFetch` tries to clear the cookie (only possible in actions) and redirects to `/login`.
+- `server-only` resolves through Next's bundled alias; no dependency added. `HealthControllerTests` now also imports `ClockConfig`.
+- Review findings: none target I4 (3 open minors elsewhere).
+
+### Tests
+- Backend: 267 run, 0 failed, 0 skipped (new: AuthControllerTests 6, AuthFlowIntegrationTests 5, DemoDataSeederTests 2). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

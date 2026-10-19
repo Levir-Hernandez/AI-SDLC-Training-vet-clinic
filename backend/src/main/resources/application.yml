@@ -25,3 +25,9 @@ app:
   booking:
     reservation-ttl: PT10M
     expiry-sweep: PT30S
+  jwt:
+    # DEVELOPMENT DEFAULT ONLY: override with the APP_JWT_SECRET environment variable (min 32 bytes for HS256).
+    secret: ${APP_JWT_SECRET:dev-only-change-me-vet-clinic-jwt-secret-0123456789}
+    ttl: PT8H
+  seed:
+    enabled: true
