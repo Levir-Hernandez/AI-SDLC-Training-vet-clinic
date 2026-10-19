@@ -218,3 +218,21 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 6: Owners and pets registration with breed picker
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST/GET /api/owners`, `GET /api/owners/{id}`, `POST /api/owners/{id}/pets` (receptionist only, 201 + `Location`, `?q=` name/phone search, default page size 20 sorted by name) and `GET /api/pets` (owner sees only own pets even with a foreign `ownerId`; receptionist needs `ownerId`; veterinarian 403). Duplicate phone gives 409 `PHONE_TAKEN`, breed/species mismatch 400 `BREED_SPECIES_MISMATCH`, blank name/phone 400 with field errors.
+- Frontend: `/reception/owners` (search, paginated list, register form with optional first pet), `/reception/owners/[id]` (pets table, add-pet form), `/owner/pets` (own pets, empty state) behind a new `owner/layout.tsx` role guard. Shared `PetFields` (breed select disabled until a species is chosen and filtered by species), `lib/breeds.ts`, new types, server actions in `app/actions/owners.ts` mapping backend errors to fields. Header links "Owners" and "My pets"; `Pagination` gained an optional `query` prop to keep the search term across pages.
+
+### Decisions and deviations
+- Completion criteria: `./mvnw verify`, `npm run lint` and `npm run build` pass. Browser manual check not performed; instead the live backend was exercised with curl (register Maria with dog, duplicate phone 409, search, mismatch 400, owner sign-in with phone sees only own pets, owner on `/api/owners` 403). Plan file is guarded, so criteria are recorded here and status set via script.
+- `PetForm.tsx` exports `PetFields` (fields only, no `<form>`) so it embeds in both the owner and add-pet forms. Files added beyond the plan: `reception/owners/[id]/add-pet-form.tsx`; `Pagination.tsx` modified.
+- Review findings: none target I6 (3 open minors elsewhere).
+
+### Tests
+- Backend: 288 run, 0 failed, 0 skipped (new: OwnerControllerTests 8, PetControllerTests 3). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

@@ -75,3 +75,46 @@ export type CreateVeterinarianRequest = {
   password: string;
   schedule: ScheduleBlock[];
 };
+
+export type Species = "DOG" | "CAT";
+
+export type Breed =
+  | "LABRADOR_RETRIEVER"
+  | "GERMAN_SHEPHERD"
+  | "GOLDEN_RETRIEVER"
+  | "BULLDOG"
+  | "DOG_MIXED"
+  | "SIAMESE"
+  | "PERSIAN"
+  | "MAINE_COON"
+  | "BENGAL"
+  | "CAT_MIXED";
+
+export type Pet = {
+  id: number;
+  name: string;
+  species: Species;
+  breed: Breed;
+  ownerId: number;
+};
+
+export type Owner = {
+  id: number;
+  name: string;
+  phone: string;
+  /** Empty in list responses; filled in the detail response. */
+  pets: Pet[];
+};
+
+export type CreatePetRequest = {
+  name: string;
+  species: Species | "";
+  breed: Breed | "";
+};
+
+export type CreateOwnerRequest = {
+  name: string;
+  phone: string;
+  password: string;
+  pets: CreatePetRequest[];
+};
