@@ -1,6 +1,6 @@
 # Harness Architecture
 
-How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed implementation plan. This file is for humans; no agent, skill or rule reads it.
+How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed implementation plan and implements it increment by increment. This file is for humans; no agent, skill or rule reads it.
 
 ## 1. Structure
 
@@ -8,7 +8,16 @@ How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed impl
 .claude/
 ├── agents/                 Who: role, boundaries, hierarchy of truth, judgment
 │   ├── planner.md          Writes and revises context/PLAN.md
-│   └── plan-reviewer.md    Reviews the plan → context/PLAN_REVIEW.md (never edits the plan)
+│   ├── plan-reviewer.md    Reviews the plan → context/PLAN_REVIEW.md (never edits the plan)
+│   └── implementation.md   Implements one increment; plan access only through scripts
+├── commands/
+│   └── implement-increment.md   /implement-increment <n>: pre-checks, then runs the implementation agent
+├── scripts/                Plan access for the implementer (Python)
+│   ├── read-increment.py            Plan header + one increment
+│   ├── check-increment-status.py    OK/BLOCKED: pending or blocked, dependencies completed; --list
+│   ├── check-plan-review-status.py  OK/BLOCKED from the verdict + open findings for the increment
+│   ├── update-increment-status.py   Sets one increment to pending | completed | blocked
+│   └── guard-plan-context.py        Hook: blocks direct access to PLAN.md and PLAN_REVIEW.md
 ├── skills/                 How: steps, formats, replies (plan skills run forked in their agent)
 │   ├── generate-plan/      Plan format; at most 20 vertical increments          (planner)
 │   ├── review-plan/        Checks, severities, verdict, decisions log           (plan-reviewer)
@@ -41,6 +50,8 @@ How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed impl
 - **User decisions are recorded.** Context passed to `revise-plan` after `--` is logged verbatim in the decisions log and carried forward on every review pass.
 - **Preservation.** Regeneration never changes `in-progress` or `done` increments.
 - **Verdicts.** `READY` (no open blockers or majors) · `READY WITH MINOR CHANGES` (1–2 open majors) · `REVISE BEFORE IMPLEMENTATION` (any blocker or more than 2 majors). `needs context` counts as open.
+- **Scripted plan access.** The implementer reads one increment (~170 lines instead of ~1,400) and changes only its status line through scripts; a hook blocks direct access. The plan stays the single copy and the pre-checks are deterministic.
+- **Increment statuses.** `pending` → `completed` only after all completion criteria pass; `blocked` on failure (can be retried). Outcomes go to `PROGRESS.md`.
 - **Simple runtime.** H2 in-memory, JWT auth (HttpOnly cookie on the frontend), no Docker. Each increment is verified with `./mvnw verify`, `npm run lint`, `npm run build` and a manual check with both apps running.
 
 ## 3. Flow
@@ -51,6 +62,9 @@ How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed impl
 3. revise-plan [codes] [-- context]  (planner) → PLAN.md, findings marked fixed, context logged
    repeat 2–3 until READY
 Each step ends with update-progress → update-changelog.
+
+4. /implement-increment <n>   (implementation) → code + tests, PROGRESS.md entry, status completed | blocked
+   review the diff, then the next increment
 ```
 
 Findings use positional codes (`B1`, `M1`, `m1`) renumbered every pass; titles stay stable so findings can be tracked across passes.

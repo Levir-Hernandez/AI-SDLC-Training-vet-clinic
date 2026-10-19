@@ -16,7 +16,9 @@ Stack: Java 21 + Spring Boot 4.1 (Maven Wrapper) in `backend/`, Next.js 16 + Rea
 | Implementation plan and increment status | `context/PLAN.md` |
 | Latest plan review, verdict and decisions log | `context/PLAN_REVIEW.md` |
 | Journal and summary of steps | `context/PROGRESS.md`, `context/CHANGELOG.md` |
-| Agents (`planner`, `plan-reviewer`) | `.claude/agents/` |
+| Agents (`planner`, `plan-reviewer`, `implementation`) | `.claude/agents/` |
+| Commands (`/implement-increment <n>`) | `.claude/commands/` |
+| Plan scripts (read/check/update increments, guard hook) | `.claude/scripts/` |
 | Skills (plan and journal workflows) | `.claude/skills/` |
 | Path-scoped coding and testing rules | `.claude/rules/` (`java-coder`, `java-tester`, `react-coder`, `react-tester`) |
 | Backend code / tests (package root `com.vetclinic`) | `backend/src/main/java/`, `backend/src/test/java/` |
@@ -85,3 +87,11 @@ From the main session:
 1. `generate-plan` (planner) → `context/PLAN.md`
 2. `review-plan` (plan-reviewer) → `context/PLAN_REVIEW.md`
 3. While the verdict is not `READY`: `revise-plan [codes] [-- context]`, then `review-plan` again.
+
+## Implementation
+
+From the main session, one increment at a time:
+
+1. `/implement-increment <n>` (implementation agent) checks that the increment is pending or blocked, its dependencies are completed and the plan review allows it, then implements, tests and records the outcome in `context/PROGRESS.md`.
+2. The agent reads and updates the plan only through `.claude/scripts/` (`read-increment`, `check-increment-status`, `check-plan-review-status`, `update-increment-status`); a hook (`guard-plan-context.py`) blocks direct access to `PLAN.md` and `PLAN_REVIEW.md`.
+3. Review the diff and test results before running the next increment. `python .claude/scripts/check-increment-status.py --list` shows every increment's status.
