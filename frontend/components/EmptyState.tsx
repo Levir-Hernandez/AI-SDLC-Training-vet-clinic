@@ -1,0 +1,8 @@
+/** Shown when a list has no items. */
+export function EmptyState({ message }: { message: string }) {
+  return (
+    <p className="rounded border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
+      {message}
+    </p>
+  );
+}

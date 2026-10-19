@@ -504,7 +504,7 @@ Frontend:
 
 ### I5 — Services catalog and veterinarian registration
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception lists the four seeded services and two seeded veterinarians, and registers a new veterinarian with a weekly schedule; invalid schedules and negative costs are rejected with clear messages.
 - **Covers:** Flow "Register" (veterinarians, UI + API); Services fixed list; acceptance "register a veterinarian with a weekly schedule; overlapping schedule blocks rejected with a clear message".
 - **Depends on:** I4

@@ -34,3 +34,44 @@ export type PageResponse<T> = {
   size: number;
   totalElements: number;
 };
+
+export type Weekday =
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
+
+export type Service = {
+  id: number;
+  code: string;
+  name: string;
+  durationMinutes: number;
+  basePrice: number;
+};
+
+/** `start` and `end` arrive as "HH:mm" or "HH:mm:ss". */
+export type ScheduleBlock = {
+  day: Weekday;
+  start: string;
+  end: string;
+};
+
+export type Veterinarian = {
+  id: number;
+  name: string;
+  specialization: string;
+  costPerService: number;
+  schedule: ScheduleBlock[];
+};
+
+export type CreateVeterinarianRequest = {
+  name: string;
+  specialization: string;
+  costPerService: number | null;
+  username: string;
+  password: string;
+  schedule: ScheduleBlock[];
+};

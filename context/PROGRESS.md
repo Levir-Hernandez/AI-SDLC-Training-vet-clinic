@@ -199,3 +199,22 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 5: Services catalog and veterinarian registration
+- Status: completed
+
+### Behavior delivered
+- Backend: `GET /api/services` (any authenticated role, unpaginated list of the four services); `GET /api/veterinarians` (paginated, default size 20 sorted by name), `GET /api/veterinarians/{id}` and `POST /api/veterinarians` (receptionist only, `@Valid`, 201 + `Location`). Invalid schedules (`INVALID_SCHEDULE`), negative cost (`VALIDATION_FAILED`) and duplicate username (`USERNAME_TAKEN`) come from the existing services and handler.
+- Frontend: `/reception/veterinarians` lists veterinarians (name, specialization, cost, schedule summary) with loading, empty and error states and pagination, plus a register form with dynamic schedule rows, a client check that start is before end, and backend field and schedule errors shown next to their fields. `app/reception/layout.tsx` enforces the receptionist role server-side (others redirect to `/`). New shared `EmptyState` and `Pagination`; "Veterinarians" link in the receptionist header; new types in `lib/types.ts`.
+
+### Decisions and deviations
+- Completion criteria: `./mvnw verify` passes, `npm run lint` clean, `npm run build` succeeds (all met). The manual UI check in a browser with both apps running was not performed in this session; behavior is covered by controller slice tests and the build. The plan file is guarded, so criteria are recorded here and the status set via script.
+- `CreateVeterinarianRequest` TypeScript type allows `costPerService: null` so an empty cost field reaches the backend as a `VALIDATION_FAILED` field error instead of `0`.
+- `reception/layout.tsx` wraps the guard in `Suspense` because `cacheComponents` is enabled. The create action redirects back to the list after success (revalidating the path).
+- Review findings: none target I5 (3 open minors elsewhere).
+
+### Tests
+- Backend: 277 run, 0 failed, 0 skipped (new: VeterinarianControllerTests 8, CatalogControllerTests 2). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

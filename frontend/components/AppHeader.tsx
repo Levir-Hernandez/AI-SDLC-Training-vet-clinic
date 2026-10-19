@@ -12,7 +12,10 @@ export const ROLE_LABEL: Record<Role, string> = {
 // Role-specific links; later increments add their screens here.
 const NAV: Record<Role, { href: string; label: string }[]> = {
   OWNER: [{ href: "/", label: "Home" }],
-  RECEPTIONIST: [{ href: "/", label: "Home" }],
+  RECEPTIONIST: [
+    { href: "/", label: "Home" },
+    { href: "/reception/veterinarians", label: "Veterinarians" },
+  ],
   VETERINARIAN: [{ href: "/", label: "Home" }],
 };
 
