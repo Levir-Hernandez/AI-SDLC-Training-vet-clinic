@@ -236,3 +236,22 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 7: Availability, walk-in booking and appointment detail
+- Status: completed
+
+### Behavior delivered
+- Backend: `GET /api/availability` (owner and receptionist; `serviceId` required, optional `veterinarianId`, `date` defaults to today) and `POST /api/appointments` (201 + `Location`; reception walk-in is `SCHEDULED` with booker `RECEPTIONIST`), `GET /api/appointments` (paginated, default size 20, scoped by role) and `GET /api/appointments/{id}` with `allowedActions`. Overlapping bookings give 409 `SLOT_TAKEN`; two concurrent HTTP bookings of one slot yield exactly one 201.
+- Frontend: `/reception/book` (owner search, pet select, `SlotPicker` with service, vet and date selectors and loading/empty/error states, Book button; a taken slot shows "That slot was just taken" and reloads the slots) and `/appointments/[id]` (pet, owner, service, vet, time, duration, total, booker, observations, `StatusBadge`, `AppointmentActions`). Shared `StatusBadge`, `SlotPicker`, `AppointmentActions` (renders only actions with a wired handler, none yet), server actions `fetchSlots` and `bookAppointment`, new appointment types, "Book walk-in" header link.
+
+### Decisions and deviations
+- Completion criteria: `./mvnw verify`, `npm run lint` and `npm run build` pass (met). The browser manual check (two-tab slot race) was not performed in this session; the same behavior is covered by `WalkInBookingIntegrationTests` (real sign-in, slot removed from availability, concurrent POSTs give 201 + 409). Plan file is guarded, so criteria are recorded here and status set via script.
+- The real `AppointmentStatus` enum is RESERVED, SCHEDULED, IN_PROGRESS, FINISHED, PAID, CLOSED, RESCHEDULED, CANCELLED (the plan text says "eight statuses"); `StatusBadge` mirrors the enum.
+- `AppointmentController` lists with no filter (filters arrive in I10, I11, I13). Owner search and pet loading on `/reception/book` happen server-side through URL params (`q`, `ownerId`) instead of extra client actions.
+- Review finding m1 (pet history endpoint mapping) targets I14 and I7's controller; not applicable now because the history endpoint is not built here. For I14, use a separate controller or method-level full paths. Other open minors do not target I7.
+
+### Tests
+- Backend: 300 run, 0 failed, 0 skipped (new: AvailabilityControllerTests 4, AppointmentControllerTests 6, WalkInBookingIntegrationTests 2). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

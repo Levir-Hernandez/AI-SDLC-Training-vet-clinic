@@ -1,0 +1,105 @@
+package com.vetclinic.appointment;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.vetclinic.appointment.dto.AppointmentResponse;
+import com.vetclinic.config.ClockConfig;
+import com.vetclinic.config.SecurityConfig;
+import com.vetclinic.owner.Breed;
+import com.vetclinic.owner.Species;
+import com.vetclinic.shared.PageResponse;
+import com.vetclinic.shared.error.ConflictException;
+import com.vetclinic.shared.error.GlobalExceptionHandler;
+import com.vetclinic.support.TestJwt;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(AppointmentController.class)
+@Import({SecurityConfig.class, ClockConfig.class, GlobalExceptionHandler.class})
+class AppointmentControllerTests {
+
+    static final String BODY =
+            "{\"petId\":1,\"serviceId\":1,\"veterinarianId\":1,\"startAt\":\"2030-01-07T10:00:00\"}";
+
+    @Autowired MockMvc mockMvc;
+    @MockitoBean BookingService booking;
+    @MockitoBean AppointmentQueryService queries;
+
+    private static AppointmentResponse response() {
+        return new AppointmentResponse(5L,
+                new AppointmentResponse.PetSummary(1L, "Rex", Species.DOG, Breed.BULLDOG), "Maria",
+                new AppointmentResponse.ServiceSummary(1L, "General consultation", 30),
+                new AppointmentResponse.VeterinarianSummary(1L, "Ana"),
+                LocalDateTime.of(2030, 1, 7, 10, 0), LocalDateTime.of(2030, 1, 7, 10, 30),
+                AppointmentStatus.SCHEDULED, Actor.RECEPTIONIST, new BigDecimal("60.00"), null, null, null, null,
+                null, false, true, List.of(AppointmentAction.START, AppointmentAction.CANCEL));
+    }
+
+    @Test
+    void receptionistBooksWalkIn() throws Exception {
+        when(booking.book(any(), any())).thenReturn(response());
+
+        mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON).content(BODY)
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/api/appointments/5"))
+                .andExpect(jsonPath("$.status").value("SCHEDULED"))
+                .andExpect(jsonPath("$.bookedBy").value("RECEPTIONIST"));
+    }
+
+    @Test
+    void listIsPaginated() throws Exception {
+        when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(response()), 0, 20, 1));
+
+        mockMvc.perform(get("/api/appointments").header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(5))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void detailIncludesAllowedActions() throws Exception {
+        when(queries.get(any(), any())).thenReturn(response());
+
+        mockMvc.perform(get("/api/appointments/5").header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.allowedActions[0]").value("START"));
+    }
+
+    @Test
+    void missingPetIdReturns400() throws Exception {
+        mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"serviceId\":1,\"veterinarianId\":1,\"startAt\":\"2030-01-07T10:00:00\"}")
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void slotTakenReturns409() throws Exception {
+        when(booking.book(any(), any())).thenThrow(new ConflictException("SLOT_TAKEN", "taken"));
+
+        mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON).content(BODY)
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("SLOT_TAKEN"));
+    }
+
+    @Test
+    void noTokenReturns401() throws Exception {
+        mockMvc.perform(get("/api/appointments")).andExpect(status().isUnauthorized());
+    }
+}

@@ -118,3 +118,59 @@ export type CreateOwnerRequest = {
   password: string;
   pets: CreatePetRequest[];
 };
+
+export type AppointmentStatus =
+  | "RESERVED"
+  | "SCHEDULED"
+  | "IN_PROGRESS"
+  | "FINISHED"
+  | "PAID"
+  | "CLOSED"
+  | "RESCHEDULED"
+  | "CANCELLED";
+
+export type AppointmentAction =
+  | "CONFIRM"
+  | "CANCEL"
+  | "EXPIRE"
+  | "START"
+  | "FINISH"
+  | "RESCHEDULE"
+  | "PAY"
+  | "CLOSE"
+  | "EDIT_OBSERVATIONS";
+
+export type Slot = {
+  veterinarianId: number;
+  veterinarianName: string;
+  startAt: string;
+  endAt: string;
+};
+
+export type Appointment = {
+  id: number;
+  pet: { id: number; name: string; species: Species; breed: Breed };
+  ownerName: string;
+  service: { id: number; name: string; durationMinutes: number };
+  veterinarian: { id: number; name: string };
+  startAt: string;
+  endAt: string;
+  status: AppointmentStatus;
+  bookedBy: "OWNER" | "RECEPTIONIST" | "VETERINARIAN" | "SYSTEM";
+  total: number;
+  observations: string | null;
+  cancelReason: string | null;
+  reservedUntil: string | null;
+  rescheduledFromId: number | null;
+  rescheduledToId: number | null;
+  debt: boolean;
+  upcoming: boolean;
+  allowedActions: AppointmentAction[];
+};
+
+export type CreateAppointmentRequest = {
+  petId: number;
+  serviceId: number;
+  veterinarianId: number;
+  startAt: string;
+};
