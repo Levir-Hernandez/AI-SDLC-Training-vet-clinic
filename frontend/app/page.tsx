@@ -8,6 +8,7 @@ async function Welcome() {
   const user = await requireRole("OWNER", "RECEPTIONIST", "VETERINARIAN");
   if (user.role === "OWNER") redirect("/owner/appointments");
   if (user.role === "VETERINARIAN") redirect("/vet/appointments");
+  if (user.role === "RECEPTIONIST") redirect("/reception/appointments");
   return (
     <>
       <h1 className="text-3xl font-semibold">Welcome, {user.displayName}</h1>

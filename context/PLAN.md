@@ -984,7 +984,7 @@ Frontend:
 
 ### I11 — Reception ongoing appointments board
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception sees all ongoing appointments in one screen with status badges and cancel actions, and can cancel any active appointment with a reason.
 - **Covers:** Flow "Follow up" (reception part), "Cancel" (reception part); lifecycle rows Reserved/Scheduled/In progress→Cancelled (reception); acceptance "reception sees all ongoing appointments with cancel and payment actions" (cancel part), "cancelling without a reason is rejected".
 - **Depends on:** I10

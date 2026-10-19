@@ -139,10 +139,32 @@ class AppointmentQueryServiceTests {
     @Test
     void debtFilterKeepsOnlyClosedAppointmentsWithoutPayment() {
         PageResponse<AppointmentResponse> result = queries.list(receptionist,
-                new AppointmentFilter(null, null, null, true), page());
+                new AppointmentFilter(null, null, null, true, null), page());
 
         assertThat(ids(result)).containsExactly(closedUnpaidA.getId());
         assertThat(result.content().get(0).debt()).isTrue();
+    }
+
+    @Test
+    void ongoingFilterReturnsActiveAppointmentsAcrossOwnersAndVets() {
+        Appointment reserved = save(petB, ana, NOW.plusDays(2), AppointmentStatus.RESERVED);
+        Appointment inProgress = save(petB, luis, NOW.plusDays(3), AppointmentStatus.IN_PROGRESS);
+        Appointment paid = save(petA, luis, NOW.plusDays(4), AppointmentStatus.PAID);
+        save(petA, ana, NOW.plusDays(5), AppointmentStatus.CANCELLED);
+        save(petA, ana, NOW.plusDays(6), AppointmentStatus.RESCHEDULED);
+        AppointmentFilter ongoing = new AppointmentFilter(null, null, null, null, true);
+
+        assertThat(ids(queries.list(receptionist, ongoing, page()))).containsExactly(finishedUnpaidA.getId(),
+                scheduledA.getId(), scheduledB.getId(), reserved.getId(), inProgress.getId(), paid.getId());
+        assertThat(ids(queries.list(receptionist,
+                new AppointmentFilter(null, null, luis.getId(), null, true), page())))
+                .containsExactly(scheduledB.getId(), inProgress.getId(), paid.getId());
+    }
+
+    @Test
+    void ongoingFilterKeepsOwnerScope() {
+        assertThat(ids(queries.list(ownerB, new AppointmentFilter(null, null, null, null, true), page())))
+                .containsExactly(scheduledB.getId());
     }
 
     @Test
@@ -156,13 +178,13 @@ class AppointmentQueryServiceTests {
     @Test
     void statusDateAndVeterinarianFiltersCombine() {
         assertThat(ids(queries.list(receptionist,
-                new AppointmentFilter(List.of(AppointmentStatus.SCHEDULED), null, null, null), page())))
+                new AppointmentFilter(List.of(AppointmentStatus.SCHEDULED), null, null, null, null), page())))
                 .containsExactly(scheduledA.getId(), scheduledB.getId());
         assertThat(ids(queries.list(receptionist,
-                new AppointmentFilter(null, LocalDate.of(2026, 3, 3), null, null), page())))
+                new AppointmentFilter(null, LocalDate.of(2026, 3, 3), null, null, null), page())))
                 .containsExactly(scheduledB.getId());
         assertThat(ids(queries.list(receptionist,
-                new AppointmentFilter(List.of(AppointmentStatus.SCHEDULED), null, luis.getId(), null), page())))
+                new AppointmentFilter(List.of(AppointmentStatus.SCHEDULED), null, luis.getId(), null, null), page())))
                 .containsExactly(scheduledB.getId());
     }
 

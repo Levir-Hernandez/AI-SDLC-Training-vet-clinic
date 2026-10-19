@@ -49,6 +49,9 @@ public class AppointmentQueryService {
         if (f.statuses() != null && !f.statuses().isEmpty()) {
             spec = spec.and((root, q, cb) -> root.get("status").in(f.statuses()));
         }
+        if (Boolean.TRUE.equals(f.ongoing())) {
+            spec = spec.and((root, q, cb) -> root.get("status").in(AppointmentFilter.ONGOING_STATUSES));
+        }
         if (f.date() != null) {
             LocalDateTime from = f.date().atStartOfDay();
             LocalDateTime to = f.date().plusDays(1).atStartOfDay();

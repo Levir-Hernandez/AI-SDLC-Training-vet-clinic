@@ -9,8 +9,10 @@ import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -88,8 +90,12 @@ public class AppointmentController {
     @GetMapping
     public PageResponse<AppointmentResponse> list(Authentication authentication,
                                                   @RequestParam(required = false) List<AppointmentStatus> status,
+                                                  @RequestParam(required = false) Boolean ongoing,
+                                                  @RequestParam(required = false)
+                                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                  @RequestParam(required = false) Long veterinarianId,
                                                   @PageableDefault(size = 20) Pageable pageable) {
-        AppointmentFilter filter = new AppointmentFilter(status, null, null, null);
+        AppointmentFilter filter = new AppointmentFilter(status, date, veterinarianId, null, ongoing);
         return queries.list(CurrentUser.from(authentication), filter, pageable);
     }
 

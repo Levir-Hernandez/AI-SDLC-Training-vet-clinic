@@ -310,3 +310,22 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I11: Reception ongoing appointments board
+- Status: completed
+
+### Behavior delivered
+- Backend: `GET /api/appointments` accepts `ongoing=true` (RESERVED, SCHEDULED, IN_PROGRESS, FINISHED, PAID), `date` (ISO) and `veterinarianId`; owner and veterinarian scope still applies. Reception cancel without a reason returns 400.
+- Frontend: `/reception/appointments` board (time, pet, owner, service, vet, badge, inline actions incl. Cancel dialog/Start/Finish, date and vet filters, pagination, empty/error states), an "Appointments" nav link for reception, and the reception home now redirects to the board.
+- Completion criteria: automated criteria met (`./mvnw verify`, `npm run lint`, `npm run build` pass). The live manual check was not performed in this session; plan criteria are recorded here because the plan file is guarded and only its status was set via script.
+
+### Decisions and deviations
+- Added an `ongoing` component to `AppointmentFilter` (5th field) and a shared `ONGOING_STATUSES` list; existing test constructors updated. `debt` is not bound in the controller (belongs to I13).
+- The vet filter loads vets via `GET /api/veterinarians?size=100`.
+- No open review findings target I11.
+
+### Tests
+- Backend: 323 run, 0 failed, 0 skipped (new: ongoing board cases in AppointmentQueryServiceTests and AppointmentControllerTests). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

@@ -222,6 +222,29 @@ class AppointmentControllerTests {
     }
 
     @Test
+    void ongoingBoardParamsReachService() throws Exception {
+        when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(), 0, 20, 0));
+
+        mockMvc.perform(get("/api/appointments?ongoing=true&date=2026-03-03&veterinarianId=7")
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<AppointmentFilter> captor = ArgumentCaptor.forClass(AppointmentFilter.class);
+        verify(queries).list(any(), captor.capture(), any());
+        assertEquals(Boolean.TRUE, captor.getValue().ongoing());
+        assertEquals(java.time.LocalDate.of(2026, 3, 3), captor.getValue().date());
+        assertEquals(7L, captor.getValue().veterinarianId());
+    }
+
+    @Test
+    void receptionistCancelWithoutReasonReturns400() throws Exception {
+        mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void unknownStatusReturns400() throws Exception {
         mockMvc.perform(get("/api/appointments?status=FOO")
                         .header("Authorization", "Bearer " + TestJwt.receptionist()))
