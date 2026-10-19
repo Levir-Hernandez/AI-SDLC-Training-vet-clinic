@@ -155,3 +155,24 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 3: Appointment and payment use cases
+- Status: completed
+
+### Behavior delivered
+- Service-layer appointment and payment use cases (no endpoints yet, A8): `AvailabilityService` (15-minute slots inside schedule blocks, future only, ignoring non-blocking statuses), `BookingService` (receptionist walk-in to SCHEDULED, owner reservation to RESERVED with `reservedUntil = now + ttl`, vet row lock plus overlap re-check giving `SLOT_TAKEN`), `AppointmentActionService` (confirm, cancel, start, finish, close, observations, reschedule/reassign, `expireDue`), `PaymentService` (exact-total single payment), `AppointmentQueryService` (scoped list with status/date/vet/debt filters, scoped get, pet history, response mapping with `allowedActions`, `debt`, `upcoming`), plus `ReservationExpiryJob`, `SchedulingConfig` and the `app.booking.*` settings.
+
+### Decisions and deviations
+- Completion criteria (all met): `./mvnw verify` BUILD SUCCESS; `npm run lint` clean; `npm run build` succeeds; backend started, `GET /api/health` returned 200 and the log showed no errors with the expiry sweeper running. The plan file is guarded from direct edits, so criteria are recorded here and the status was set via script.
+- Added `AppointmentLifecycle.validate(...)` (same checks as `apply`, no mutation; `apply` now shares the same private resolver). Reschedule and pay validate first, secure the new slot or check the amount, and only then apply, so a conflict leaves the original unchanged even in unit tests.
+- `AppointmentRepository` now also extends `JpaSpecificationExecutor` and gained `findByPetId(Long, Pageable)` for the dynamic scoped list and history (not listed in the plan).
+- `AppointmentQueryServiceTests` is a `@DataJpaTest` (real repositories) instead of a mocked unit test, because scoping and the debt filter are JPA specifications that mocks cannot verify. Expired-RESERVED/CANCELLED non-blocking rules in `AvailabilityServiceTests` rely on `findBlocking`, which is proven in `AppointmentRepositoryTests`; the unit test verifies the query is called with the current time.
+- `BookingConcurrencyIntegrationTests` uses the default `@SpringBootTest` (mock web environment) because `webEnvironment = NONE` fails to start with `SecurityConfig`.
+- `RescheduleRequest.veterinarianId` is optional (keeps the original vet when absent); reschedule new appointments are `bookedBy` RECEPTIONIST.
+- Review findings: none target I3 (check-plan-review-status: no open findings for I3).
+
+### Tests
+- Backend: 254 run, 0 failed, 0 skipped (new: AvailabilityServiceTests 14, BookingServiceTests 9, AppointmentActionServiceTests 37, AppointmentQueryServiceTests 14, PaymentServiceTests 8, BookingConcurrencyIntegrationTests 1). Frontend lint and build pass.
+
+### Blockers
+- None

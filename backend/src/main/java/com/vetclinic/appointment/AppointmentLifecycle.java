@@ -59,7 +59,18 @@ public class AppointmentLifecycle {
         return RULES;
     }
 
+    /** Applies the transition; fails with the same errors as {@link #validate} and changes nothing on failure. */
     public void apply(Appointment appointment, AppointmentAction action, Actor actor, TransitionContext ctx) {
+        Rule rule = resolve(appointment, action, actor, ctx);
+        appointment.applyStatus(rule.to(), reasonFor(action, ctx));
+    }
+
+    /** Checks that the transition is allowed without changing the appointment. */
+    public void validate(Appointment appointment, AppointmentAction action, Actor actor, TransitionContext ctx) {
+        resolve(appointment, action, actor, ctx);
+    }
+
+    private Rule resolve(Appointment appointment, AppointmentAction action, Actor actor, TransitionContext ctx) {
         AppointmentStatus from = appointment.getStatus();
         Rule rule = RULES.stream()
                 .filter(r -> r.from() == from && r.action() == action)
@@ -69,19 +80,22 @@ public class AppointmentLifecycle {
         if (!rule.actors().contains(actor)) {
             throw new ForbiddenException("ACTION_NOT_ALLOWED", actor + " cannot " + action + " an appointment");
         }
-        String reason = null;
         if (action == CANCEL) {
-            reason = ctx.reason() == null ? "" : ctx.reason().trim();
-            if (reason.isEmpty()) {
+            if (reasonFor(action, ctx).isEmpty()) {
                 throw new BadRequestException("REASON_REQUIRED", "A cancellation reason is required");
             }
-        } else if (action == EXPIRE) {
-            reason = "Reservation expired";
         } else if (action == CONFIRM
                 && (appointment.getReservedUntil() == null || !appointment.getReservedUntil().isAfter(ctx.now()))) {
             throw new ConflictException("RESERVATION_EXPIRED", "The reservation has expired");
         }
-        appointment.applyStatus(rule.to(), reason);
+        return rule;
+    }
+
+    private static String reasonFor(AppointmentAction action, TransitionContext ctx) {
+        if (action == CANCEL) {
+            return ctx.reason() == null ? "" : ctx.reason().trim();
+        }
+        return action == EXPIRE ? "Reservation expired" : null;
     }
 
     /** Observations can be edited until the appointment is closed or cancelled (TASK.md). */

@@ -2,11 +2,17 @@ package com.vetclinic.appointment;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
 
     /** True when a blocking appointment of the veterinarian overlaps [start, end). */
     @Query("select count(a) > 0 from Appointment a where a.veterinarian.id = :vetId"
@@ -31,4 +37,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByStatusAndReservedUntilLessThanEqual(AppointmentStatus status, LocalDateTime time);
 
     List<Appointment> findByRescheduledFromId(Long rescheduledFromId);
+
+    Page<Appointment> findByPetId(Long petId, Pageable pageable);
 }
