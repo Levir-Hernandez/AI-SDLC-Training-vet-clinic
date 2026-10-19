@@ -1346,7 +1346,7 @@ Frontend:
 
 ### I16 — Final acceptance pass
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Every `TASK.md` acceptance criterion is verified end to end on a freshly started system, with an end-to-end integration test.
 - **Covers:** All acceptance criteria (re-verification); seeded demo data; "backend builds and tests pass; frontend builds and lints cleanly".
 - **Depends on:** I15

@@ -412,3 +412,22 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I16: Final acceptance pass
+- Status: completed
+
+### Behavior delivered
+- Backend: `AcceptanceFlowIntegrationTests` runs the full cross-role flow on the seeded system with real sign-ins (reception registers an owner, owner reserves and confirms, `vet.ana` starts, edits observations and finishes, reception pays the exact total and closes to CLOSED without debt). A second payment returns 409, and an owner reading another owner's appointment gets 404.
+- Frontend: no code changes; lint and build pass.
+- Completion criteria: automated criteria met (`./mvnw verify`, `npm run lint`, `npm run build`). The manual acceptance checklist (restart, sign-ins, each acceptance criterion in the browser) was NOT performed; this session has no browser and the apps were not run. The criteria checkboxes in the plan could not be edited because direct access is blocked; only the status was set.
+
+### Decisions and deviations
+- The veterinarian id is read from the repository by name because `/api/auth/me` does not expose it.
+- The test cleans up owners, pets, appointments, payments and owner accounts after each case so it does not affect other integration tests sharing the context.
+- No open review findings target I16.
+
+### Tests
+- Backend: 355 run, 0 failed, 0 skipped (2 new AcceptanceFlowIntegrationTests). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- Manual acceptance checklist with both apps running has not been executed. Once it is walked through and passes, set I16 to `completed`.
