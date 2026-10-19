@@ -99,7 +99,11 @@ async function Board({ searchParams }: { searchParams: Promise<Params> }) {
                 {data.content.map((a) => (
                   <tr key={a.id} className="border-b border-zinc-100 align-top dark:border-zinc-900">
                     <td className="py-2 pr-4">{dateTime(a.startAt)}</td>
-                    <td className="py-2 pr-4">{a.pet.name}</td>
+                    <td className="py-2 pr-4">
+                      <Link href={`/reception/pets/${a.pet.id}/history`} className="underline">
+                        {a.pet.name}
+                      </Link>
+                    </td>
                     <td className="py-2 pr-4">{a.ownerName}</td>
                     <td className="py-2 pr-4">{a.service.name}</td>
                     <td className="py-2 pr-4">{a.veterinarian.name}</td>

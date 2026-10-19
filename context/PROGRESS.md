@@ -369,3 +369,24 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I14: Pet service history
+- Status: completed
+
+### Behavior delivered
+- Backend: `GET /api/pets/{id}/history` (receptionist; owner for own pets) returns a `PageResponse<AppointmentResponse>` of all the pet's appointments, latest first, including cancelled, rescheduled and closed. Another owner's pet or unknown pet gives 404, veterinarian 403, no token 401.
+- Frontend: `/reception/pets/[id]/history` and `/owner/pets/[id]/history` show "Upcoming" and "Past" sections with empty states (debt flag only for reception); "History" links on the reception owner detail and `/owner/pets`, and the pet name on the ongoing board links to the history.
+- Completion criteria: automated criteria met (`./mvnw verify`, `npm run lint`, `npm run build` pass). The live manual check with both apps running was not performed in this session; `PetHistoryTests` cover the same access and ordering over HTTP.
+
+### Decisions and deviations
+- Review m1 (endpoint under the `/api/appointments` prefix): fixed by adding a separate `PetHistoryController` mapped at `/api/pets` instead of modifying `AppointmentController`. `AppointmentQueryService.historyForPet` already existed from I3.
+- Review m2 (slice test with mocked services cannot prove ordering/scoping): fixed by making `PetHistoryTests` an integration test with real sign-ins (reception, owner, vet) and real services.
+- Added shared `components/PetHistory.tsx` used by both history pages to avoid duplication; not listed in the plan.
+- Default page size for the history endpoint is 50; the frontend requests `size=100`.
+- m3 was not shown in the increment details I read and does not target I14 as far as visible.
+
+### Tests
+- Backend: 348 run, 0 failed, 0 skipped (6 new PetHistoryTests). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

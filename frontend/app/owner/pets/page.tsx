@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -24,7 +25,8 @@ async function PetList() {
         <tr className="border-b border-zinc-200 dark:border-zinc-800">
           <th className="py-2 pr-4">Name</th>
           <th className="py-2 pr-4">Species</th>
-          <th className="py-2">Breed</th>
+          <th className="py-2 pr-4">Breed</th>
+          <th className="py-2" />
         </tr>
       </thead>
       <tbody>
@@ -32,7 +34,12 @@ async function PetList() {
           <tr key={pet.id} className="border-b border-zinc-100 dark:border-zinc-900">
             <td className="py-2 pr-4">{pet.name}</td>
             <td className="py-2 pr-4">{speciesLabel(pet.species)}</td>
-            <td className="py-2">{breedLabel(pet.breed)}</td>
+            <td className="py-2 pr-4">{breedLabel(pet.breed)}</td>
+            <td className="py-2">
+              <Link href={`/owner/pets/${pet.id}/history`} className="underline">
+                History
+              </Link>
+            </td>
           </tr>
         ))}
       </tbody>

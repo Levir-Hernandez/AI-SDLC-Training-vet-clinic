@@ -1210,7 +1210,7 @@ Frontend:
 
 ### I14 — Pet service history
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception opens a pet's service history listing its past and upcoming appointments; owners open the same history for their own pets (A9).
 - **Covers:** Entity "Service history" (UI + API); flow "Follow up" (reception opens a pet's service history); acceptance "reception can open a pet's service history"; rule "owners see only their own pets" (history scope); assumption A9 (owner history view).
 - **Depends on:** I13
