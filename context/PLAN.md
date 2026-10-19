@@ -758,7 +758,7 @@ Frontend:
 
 ### I8 — Online booking: reserve, confirm and reservation expiry
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** A signed-in owner picks a pet, service, optional vet and date, reserves a free slot, confirms it to schedule the appointment, and unconfirmed reservations expire and free the slot.
 - **Covers:** Flow "Book online" (UI + API); lifecycle rows Reserved→Scheduled (owner, reception), Reserved→Cancelled (system, expired); acceptance "owner sees only free slots for chosen service, veterinarian and date and slots refresh when any change", "owner can reserve and confirm; unconfirmed reservation expires and slot becomes free".
 - **Depends on:** I7

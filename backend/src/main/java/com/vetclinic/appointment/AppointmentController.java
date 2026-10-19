@@ -25,9 +25,20 @@ public class AppointmentController {
     private final BookingService booking;
     private final AppointmentQueryService queries;
 
-    public AppointmentController(BookingService booking, AppointmentQueryService queries) {
+    private final AppointmentActionService actions;
+
+    public AppointmentController(BookingService booking, AppointmentQueryService queries,
+                                 AppointmentActionService actions) {
         this.booking = booking;
         this.queries = queries;
+        this.actions = actions;
+    }
+
+    /** Owner or reception confirms a reservation; expired holds are rejected by the lifecycle. */
+    @PostMapping("/{id}/confirm")
+    @PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
+    public AppointmentResponse confirm(Authentication authentication, @PathVariable Long id) {
+        return actions.confirm(CurrentUser.from(authentication), id);
     }
 
     /** Reception books a walk-in; the service rejects veterinarians. */

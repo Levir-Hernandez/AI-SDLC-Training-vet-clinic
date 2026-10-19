@@ -16,6 +16,7 @@ import com.vetclinic.owner.Species;
 import com.vetclinic.shared.PageResponse;
 import com.vetclinic.shared.error.ConflictException;
 import com.vetclinic.shared.error.GlobalExceptionHandler;
+import com.vetclinic.auth.Role;
 import com.vetclinic.support.TestJwt;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,6 +39,7 @@ class AppointmentControllerTests {
     @Autowired MockMvc mockMvc;
     @MockitoBean BookingService booking;
     @MockitoBean AppointmentQueryService queries;
+    @MockitoBean AppointmentActionService actions;
 
     private static AppointmentResponse response() {
         return new AppointmentResponse(5L,
@@ -96,6 +98,33 @@ class AppointmentControllerTests {
                         .header("Authorization", "Bearer " + TestJwt.receptionist()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("SLOT_TAKEN"));
+    }
+
+    @Test
+    void ownerConfirmsReservation() throws Exception {
+        when(actions.confirm(any(), any())).thenReturn(response());
+
+        mockMvc.perform(post("/api/appointments/5/confirm")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SCHEDULED"));
+    }
+
+    @Test
+    void veterinarianCannotConfirm() throws Exception {
+        mockMvc.perform(post("/api/appointments/5/confirm")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.VETERINARIAN)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void expiredReservationReturns409() throws Exception {
+        when(actions.confirm(any(), any())).thenThrow(new ConflictException("RESERVATION_EXPIRED", "expired"));
+
+        mockMvc.perform(post("/api/appointments/5/confirm")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.OWNER)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("RESERVATION_EXPIRED"));
     }
 
     @Test

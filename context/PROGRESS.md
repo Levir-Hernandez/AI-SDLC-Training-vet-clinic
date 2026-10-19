@@ -255,3 +255,21 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 8: Online booking: reserve, confirm and reservation expiry
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST /api/appointments/{id}/confirm` (owner and receptionist; vet gets 403) returns the SCHEDULED appointment; expired holds give 409 `RESERVATION_EXPIRED`, repeated confirms 409 `INVALID_TRANSITION`. Owner reservation (RESERVED, `reservedUntil`) and the sweeper cancelling lapsed holds with "Reservation expired" were verified end to end over HTTP.
+- Frontend: `/owner/book` (own pet select, `SlotPicker`, Reserve, reservation panel with countdown and Confirm; expiry shows "Reservation expired, pick a slot again" and reloads slots; slot conflicts reload slots), Confirm button wired on the appointment detail page, owner "Book" header link.
+
+### Decisions and deviations
+- Completion criteria: `./mvnw verify`, `npm run lint` and `npm run build` pass (met). Browser manual check and the short-TTL expiry check were not performed in this session; expiry is covered by `OnlineBookingIntegrationTests` with a movable clock. Plan file is guarded, so criteria are recorded here and status set via script.
+- `bookAppointment` gained an optional `{ redirectOnSuccess: false }` so the owner form can show the reservation panel; `confirmFromDetail` is the form-action variant for the detail page.
+- Review finding m3 (TTL env var name): not applicable to code; for the manual check use `APP_BOOKING_RESERVATIONTTL=PT1M` or `--app.booking.reservation-ttl=PT1M`.
+
+### Tests
+- Backend: 305 run, 0 failed, 0 skipped (new: 3 confirm cases in AppointmentControllerTests, OnlineBookingIntegrationTests 2). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

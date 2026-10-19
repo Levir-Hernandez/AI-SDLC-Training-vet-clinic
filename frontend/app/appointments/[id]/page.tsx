@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { confirmFromDetail } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -63,7 +64,7 @@ async function AppointmentDetail({ params }: { params: Promise<{ id: string }> }
         <Row label="Observations">{a.observations || "None"}</Row>
         {a.cancelReason ? <Row label="Cancel reason">{a.cancelReason}</Row> : null}
       </dl>
-      <AppointmentActions actions={a.allowedActions} />
+      <AppointmentActions actions={a.allowedActions} handlers={{ CONFIRM: confirmFromDetail.bind(null, a.id) }} />
     </>
   );
 }

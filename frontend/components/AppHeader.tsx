@@ -14,6 +14,7 @@ const NAV: Record<Role, { href: string; label: string }[]> = {
   OWNER: [
     { href: "/", label: "Home" },
     { href: "/owner/pets", label: "My pets" },
+    { href: "/owner/book", label: "Book" },
   ],
   RECEPTIONIST: [
     { href: "/", label: "Home" },
