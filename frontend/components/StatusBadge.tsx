@@ -42,7 +42,8 @@ export function StatusBadge({ status, debt = false }: { status: AppointmentStatu
       ? { label: "Debt", classes: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" }
       : STATUS[status];
   return (
-    <span role="status" className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${classes}`}>
+    <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${classes}`}>
+      <span className="sr-only">Status: </span>
       {label}
     </span>
   );

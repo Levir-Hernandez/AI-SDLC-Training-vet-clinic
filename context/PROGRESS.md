@@ -390,3 +390,25 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I15: Status badges and allowed-actions consistency
+- Status: completed
+
+### Behavior delivered
+- Backend: `AllowedActionsResponseTests` proves `GET /api/appointments/{id}` returns the lifecycle-consistent `allowedActions` for owner, veterinarian and receptionist across all eight statuses (final statuses empty; owner never gets START/FINISH/PAY/CLOSE/RESCHEDULE).
+- Frontend: every list and detail renders the same `StatusBadge` (owner and vet lists now also show "Debt" for closed-unpaid); all action buttons go through `ConfirmButton`, which is disabled while pending, and Cancel/Pay/Close keep their confirmations; added `loading.tsx` and `error.tsx` (readable message plus "Try again") for `owner`, `vet`, `reception` and `appointments` routes.
+- Completion criteria: automated criteria met (`./mvnw verify`, `npm run lint`, `npm run build`). The live manual check with both apps running was not performed in this session; the backend test covers the action sets per role and status. The criteria checkboxes in `PLAN.md` could not be edited because direct access is blocked; only the status was set.
+
+### Decisions and deviations
+- Most of the plan was already in place from earlier increments (`StatusBadge`, `EmptyState`, `AppointmentActions` driven by `allowedActions`); this increment only closed the gaps.
+- Reused `ConfirmButton` (message now optional) for the pending state instead of adding a new component.
+- `StatusBadge` drops `role="status"` (live-region semantics are wrong for a static label) and adds a visually hidden "Status: " prefix.
+- Vet on RESERVED gets `EDIT_OBSERVATIONS` (existing lifecycle rule: editable until closed or cancelled); the test asserts that behavior.
+- Error boundaries use `unstable_retry`, the retry prop of Next.js 16.
+- No open review findings target I15.
+
+### Tests
+- Backend: 353 run, 0 failed, 0 skipped (5 new AllowedActionsResponseTests). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

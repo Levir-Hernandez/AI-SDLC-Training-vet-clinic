@@ -49,7 +49,7 @@ async function AppointmentList({ searchParams }: { searchParams: Promise<{ page?
               <td className="py-2 pr-4">{a.service.name}</td>
               <td className="py-2 pr-4">{dateTime(a.startAt)}</td>
               <td className="py-2 pr-4">
-                <StatusBadge status={a.status} />
+                <StatusBadge status={a.status} debt={a.debt} />
               </td>
               <td className="py-2">
                 <Link href={`/appointments/${a.id}`} className="underline">

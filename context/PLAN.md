@@ -1280,7 +1280,7 @@ Frontend:
 
 ### I15 — Status badges and allowed-actions consistency
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Every screen uses the same status badge and offers exactly the actions the backend reports as allowed for the current user.
 - **Covers:** Acceptance "each status shows a consistent badge, and only allowed actions are offered"; React rules on loading/empty/error states, confirmation of destructive actions, accessibility.
 - **Depends on:** I14

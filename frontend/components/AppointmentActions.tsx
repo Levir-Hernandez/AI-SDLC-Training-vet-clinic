@@ -76,9 +76,7 @@ export function AppointmentActions({
           </Link>
         ) : (
         <form key={action} action={handlers[action]}>
-          <button type="submit" className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700">
-            {LABEL[action]}
-          </button>
+          <ConfirmButton label={LABEL[action]} />
         </form>
         ),
       )}
