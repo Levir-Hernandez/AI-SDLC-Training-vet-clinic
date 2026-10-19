@@ -1,6 +1,7 @@
 package com.vetclinic.appointment;
 
 import com.vetclinic.appointment.dto.AppointmentResponse;
+import com.vetclinic.appointment.dto.CancelRequest;
 import com.vetclinic.appointment.dto.CreateAppointmentRequest;
 import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
@@ -39,6 +40,14 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
     public AppointmentResponse confirm(Authentication authentication, @PathVariable Long id) {
         return actions.confirm(CurrentUser.from(authentication), id);
+    }
+
+    /** Owner (own appointment) or reception cancels with a required reason. */
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
+    public AppointmentResponse cancel(Authentication authentication, @PathVariable Long id,
+                                      @Valid @RequestBody CancelRequest request) {
+        return actions.cancel(CurrentUser.from(authentication), id, request.reason());
     }
 
     /** Reception books a walk-in; the service rejects veterinarians. */

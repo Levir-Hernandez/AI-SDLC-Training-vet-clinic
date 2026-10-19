@@ -273,3 +273,21 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 9: Owner's appointments and cancellation
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST /api/appointments/{id}/cancel` (owner and receptionist; vet gets 403). Blank reason gives 400, another owner's appointment 404, repeated cancel 409 `INVALID_TRANSITION`. Owner list is scoped to own pets across days and carries `service.durationMinutes`.
+- Frontend: `/owner/appointments` (paginated table with pet, service, vet, date/time, duration, status badge, details link; loading/empty/error states), `CancelDialog` (modal, required reason, Confirm disabled while blank, focus trap, backend `reason` error shown), `cancelAppointment` server action, CANCEL wired in `AppointmentActions` (new `appointmentId` prop), owner "My appointments" header link, and owner home now redirects to it.
+
+### Decisions and deviations
+- Completion criteria: `./mvnw verify`, `npm run lint` and `npm run build` pass (met). The browser manual check was not performed in this session; owner scoping and cancel rules are covered by `OwnerScopeIntegrationTests` with real sign-ins. Plan file is guarded, so criteria are recorded here and status set via script.
+- CANCEL is rendered as a dialog button rather than a form handler, so `AppointmentActions` takes `appointmentId` and shows CANCEL only when it is provided. The plan said `app/page.tsx` redirect "now targets" the list; no owner redirect existed, so one was added.
+- No open review findings target I9.
+
+### Tests
+- Backend: 312 run, 0 failed, 0 skipped (new: 3 cancel cases in AppointmentControllerTests, OwnerScopeIntegrationTests 4). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

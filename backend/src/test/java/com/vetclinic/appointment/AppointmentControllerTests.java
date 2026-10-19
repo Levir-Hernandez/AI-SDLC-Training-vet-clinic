@@ -128,6 +128,32 @@ class AppointmentControllerTests {
     }
 
     @Test
+    void ownerCancelsWithReason() throws Exception {
+        when(actions.cancel(any(), any(), any())).thenReturn(response());
+
+        mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"Pet is ill\"}")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.OWNER)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void cancelWithoutReasonReturns400() throws Exception {
+        mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"\"}")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.OWNER)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void veterinarianCannotCancel() throws Exception {
+        mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"x\"}")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.VETERINARIAN)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void noTokenReturns401() throws Exception {
         mockMvc.perform(get("/api/appointments")).andExpect(status().isUnauthorized());
     }

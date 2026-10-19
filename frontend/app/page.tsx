@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ROLE_LABEL } from "@/components/AppHeader";
 import { requireRole } from "@/lib/auth";
@@ -5,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 // Role landing screens are added by later increments; until then show a welcome.
 async function Welcome() {
   const user = await requireRole("OWNER", "RECEPTIONIST", "VETERINARIAN");
+  if (user.role === "OWNER") redirect("/owner/appointments");
   return (
     <>
       <h1 className="text-3xl font-semibold">Welcome, {user.displayName}</h1>

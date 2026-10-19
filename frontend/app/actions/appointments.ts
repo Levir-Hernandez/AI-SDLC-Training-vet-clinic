@@ -5,6 +5,7 @@ import { ApiError, apiPost } from "@/lib/api";
 import type { Appointment, CreateAppointmentRequest } from "@/lib/types";
 
 export type BookingResult = { error?: string; slotTaken?: boolean; appointment?: Appointment };
+export type CancelResult = { error?: string; reasonError?: string };
 export type ConfirmResult = { error?: string; expired?: boolean };
 
 /** Books the appointment; on success redirects to its detail page. */
@@ -45,5 +46,18 @@ export async function confirmAppointment(id: number): Promise<ConfirmResult> {
 export async function confirmFromDetail(id: number, formData: FormData): Promise<void> {
   void formData;
   await confirmAppointment(id);
+  redirect(`/appointments/${id}`);
+}
+
+/** Cancels the appointment with a reason; on success redirects to its detail page. */
+export async function cancelAppointment(id: number, reason: string): Promise<CancelResult> {
+  try {
+    await apiPost<Appointment>(`/api/appointments/${id}/cancel`, { reason });
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    const field = error.fieldErrors.find((e) => e.field === "reason");
+    if (field) return { reasonError: field.message };
+    return { error: error.message };
+  }
   redirect(`/appointments/${id}`);
 }
