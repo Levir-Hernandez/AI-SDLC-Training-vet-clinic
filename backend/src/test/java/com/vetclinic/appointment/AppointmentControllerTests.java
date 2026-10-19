@@ -253,6 +253,33 @@ class AppointmentControllerTests {
     }
 
     @Test
+    void receptionistReschedules() throws Exception {
+        when(actions.reschedule(any(), any(), any())).thenReturn(response());
+
+        mockMvc.perform(post("/api/appointments/4/reschedule").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"veterinarianId\":2,\"startAt\":\"2030-01-08T10:00:00\"}")
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/api/appointments/5"));
+    }
+
+    @Test
+    void rescheduleWithoutStartAtReturns400() throws Exception {
+        mockMvc.perform(post("/api/appointments/4/reschedule").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"veterinarianId\":2}")
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void ownerCannotReschedule() throws Exception {
+        mockMvc.perform(post("/api/appointments/4/reschedule").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"startAt\":\"2030-01-08T10:00:00\"}")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.OWNER)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void noTokenReturns401() throws Exception {
         mockMvc.perform(get("/api/appointments")).andExpect(status().isUnauthorized());
     }

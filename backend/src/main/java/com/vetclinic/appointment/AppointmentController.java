@@ -5,6 +5,7 @@ import com.vetclinic.appointment.dto.AppointmentResponse;
 import com.vetclinic.appointment.dto.CancelRequest;
 import com.vetclinic.appointment.dto.CreateAppointmentRequest;
 import com.vetclinic.appointment.dto.ObservationsRequest;
+import com.vetclinic.appointment.dto.RescheduleRequest;
 import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
 import jakarta.validation.Valid;
@@ -76,6 +77,15 @@ public class AppointmentController {
     public AppointmentResponse observations(Authentication authentication, @PathVariable Long id,
                                             @Valid @RequestBody ObservationsRequest request) {
         return actions.updateObservations(CurrentUser.from(authentication), id, request.observations());
+    }
+
+    /** Reception moves or reassigns the appointment; the response is the new linked appointment. */
+    @PostMapping("/{id}/reschedule")
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public ResponseEntity<AppointmentResponse> reschedule(Authentication authentication, @PathVariable Long id,
+                                                          @Valid @RequestBody RescheduleRequest request) {
+        AppointmentResponse created = actions.reschedule(CurrentUser.from(authentication), id, request);
+        return ResponseEntity.created(URI.create("/api/appointments/" + created.id())).body(created);
     }
 
     /** Reception books a walk-in; the service rejects veterinarians. */

@@ -22,11 +22,13 @@ type Props = {
   onSelect: (selection: { serviceId: number | null; slot: Slot | null }) => void;
   /** Increment to force a reload of the slots (for example after a booking conflict). */
   refreshKey?: number;
+  /** Preselects and locks the service (used when rescheduling). */
+  lockedServiceId?: number;
 };
 
 /** Service, optional veterinarian and date selectors with the list of free slots below. */
-export function SlotPicker({ services, veterinarians, onSelect, refreshKey = 0 }: Props) {
-  const [serviceId, setServiceId] = useState("");
+export function SlotPicker({ services, veterinarians, onSelect, refreshKey = 0, lockedServiceId }: Props) {
+  const [serviceId, setServiceId] = useState(lockedServiceId !== undefined ? String(lockedServiceId) : "");
   const [vetId, setVetId] = useState("");
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState<Slot[] | null>(null);
@@ -70,7 +72,7 @@ export function SlotPicker({ services, veterinarians, onSelect, refreshKey = 0 }
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-1">
           <label htmlFor="serviceId" className="text-sm font-medium">Service</label>
-          <select id="serviceId" value={serviceId} onChange={(e) => change(setServiceId, e.target.value, e.target.value)} className={field}>
+          <select id="serviceId" value={serviceId} onChange={(e) => change(setServiceId, e.target.value, e.target.value)} disabled={lockedServiceId !== undefined} className={field}>
             <option value="">Select a service</option>
             {services.map((s) => (
               <option key={s.id} value={s.id}>{s.name} ({s.durationMinutes} min)</option>

@@ -106,3 +106,24 @@ export async function cancelAppointment(id: number, reason: string): Promise<Can
   }
   redirect(`/appointments/${id}`);
 }
+
+/** Reschedules or reassigns; on success redirects to the new linked appointment. */
+export async function rescheduleAppointment(
+  id: number,
+  veterinarianId: number,
+  startAt: string,
+): Promise<BookingResult> {
+  let created: Appointment;
+  try {
+    created = await apiPost<Appointment>(`/api/appointments/${id}/reschedule`, { veterinarianId, startAt });
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    if (error.code === "SLOT_TAKEN" || error.code === "SLOT_UNAVAILABLE") {
+      return { slotTaken: true, error: "That slot was just taken. Pick another one." };
+    }
+    if (error.code === "INVALID_TRANSITION") return { error: "This appointment can no longer be rescheduled." };
+    return { error: error.message };
+  }
+  revalidatePath(`/appointments/${id}`);
+  redirect(`/appointments/${created.id}`);
+}

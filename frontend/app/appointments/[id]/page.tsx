@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { confirmFromDetail, finishAppointment, startAppointment } from "@/app/actions/appointments";
@@ -63,6 +64,16 @@ async function AppointmentDetail({ params }: { params: Promise<{ id: string }> }
         <Row label="Total">{a.total.toFixed(2)}</Row>
         <Row label="Booked by">{BOOKER[a.bookedBy]}</Row>
         <Row label="Observations">{a.observations || "None"}</Row>
+        {a.rescheduledFromId ? (
+          <Row label="Rescheduled from">
+            <Link href={`/appointments/${a.rescheduledFromId}`} className="underline">#{a.rescheduledFromId}</Link>
+          </Row>
+        ) : null}
+        {a.rescheduledToId ? (
+          <Row label="Rescheduled to">
+            <Link href={`/appointments/${a.rescheduledToId}`} className="underline">#{a.rescheduledToId}</Link>
+          </Row>
+        ) : null}
         {a.cancelReason ? <Row label="Cancel reason">{a.cancelReason}</Row> : null}
       </dl>
       <AppointmentActions

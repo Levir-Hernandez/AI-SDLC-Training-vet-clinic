@@ -1055,7 +1055,7 @@ Frontend:
 
 ### I12 — Reschedule and reassign
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception moves a scheduled or in-progress appointment to another free time and/or veterinarian; the original becomes `RESCHEDULED` and a new linked `SCHEDULED` appointment is created.
 - **Covers:** Flow "Reschedule or reassign" (UI + API); lifecycle rows Scheduled→Rescheduled, In progress→Rescheduled (reception, new slot available); rule "Rescheduled is final"; acceptance "rescheduling or reassigning marks the original as rescheduled and creates a linked scheduled appointment".
 - **Depends on:** I11

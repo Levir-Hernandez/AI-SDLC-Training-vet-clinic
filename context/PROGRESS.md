@@ -329,3 +329,23 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I12: Reschedule and reassign
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST /api/appointments/{id}/reschedule` (receptionist only, `{veterinarianId?, startAt}`) returns 201 with `Location` of the new linked SCHEDULED appointment; the original becomes RESCHEDULED with `rescheduledToId`; a taken slot gives 409 `SLOT_TAKEN` and leaves the original unchanged; actions on the original give 409 `INVALID_TRANSITION`.
+- Frontend: `/appointments/[id]/reschedule` (receptionist-only, service locked, vet selectable via the slot picker), a Reschedule link in the appointment actions, and "Rescheduled from / to" links on the detail page.
+- Completion criteria: automated criteria met (`./mvnw verify`, `npm run lint`, `npm run build` pass). The live manual check with both apps running was not performed in this session; the integration tests cover the same flow over HTTP.
+
+### Decisions and deviations
+- `AppointmentActionService.reschedule` and `RescheduleRequest` already existed from I3, so only the controller endpoint was added on the backend.
+- `SlotPicker` gained an optional `lockedServiceId` prop (preselects and disables the service select); small addition outside the listed files, needed for "service locked".
+- The reschedule page redirects to the detail page when `RESCHEDULE` is not in the allowed actions.
+- No open review findings target I12.
+
+### Tests
+- Backend: 329 run, 0 failed, 0 skipped (3 new controller cases, 3 new RescheduleIntegrationTests). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

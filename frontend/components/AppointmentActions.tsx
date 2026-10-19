@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CancelDialog } from "@/components/CancelDialog";
 import type { AppointmentAction } from "@/lib/types";
 
@@ -29,7 +30,7 @@ export function AppointmentActions({
   appointmentId?: number;
   handlers?: Partial<Record<AppointmentAction, Handler>>;
 }) {
-  const available = actions.filter((a) => (a === "CANCEL" ? appointmentId !== undefined : handlers[a]));
+  const available = actions.filter((a) => (a === "CANCEL" || a === "RESCHEDULE" ? appointmentId !== undefined : handlers[a]));
   if (available.length === 0) {
     return <p className="text-sm text-zinc-500">No actions available for this appointment.</p>;
   }
@@ -38,6 +39,14 @@ export function AppointmentActions({
       {available.map((action) =>
         action === "CANCEL" ? (
           <CancelDialog key={action} appointmentId={appointmentId!} />
+        ) : action === "RESCHEDULE" ? (
+          <Link
+            key={action}
+            href={`/appointments/${appointmentId}/reschedule`}
+            className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
+          >
+            {LABEL[action]}
+          </Link>
         ) : (
         <form key={action} action={handlers[action]}>
           <button type="submit" className="rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700">
