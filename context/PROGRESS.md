@@ -136,3 +136,22 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment 2: Registration use cases
+- Status: completed
+
+### Behavior delivered
+- Service-layer registration: `VeterinarianService` (create with schedule validation and linked `VETERINARIAN` account, paginated list, get/require), `OwnerService` (create with unique phone, `OWNER` account using phone as username, optional initial pets; search list; detail with pets), `PetService` (add, owner/receptionist/vet scoped `listFor`, `requireAccessible`), `AccountService` (BCrypt, `USERNAME_TAKEN`), `CatalogService`, `CurrentUser` record and `PasswordConfig` BCrypt bean, plus request/response DTOs. No endpoints are exposed yet (A8).
+
+### Decisions and deviations
+- Completion criteria (all met): `./mvnw verify` passes; `npm run lint` clean; `npm run build` succeeds; backend started and `GET /api/health` returned 200 (frontend unchanged). The plan file is guarded from direct edits, so criteria are recorded here and the status was set via script.
+- `OwnerService.create` builds and validates all initial pets (via package-private `PetService.build`) before persisting anything, so a mismatched breed saves nothing.
+- Added repository methods `OwnerRepository.existsByPhone`/`search` and `PetRepository.findByOwnerId`/`findByOwnerIdOrderById` (not listed in the plan, needed by the services).
+- Receptionist listing pets without `ownerId` raises `400 OWNER_ID_REQUIRED`; vet access raises `403 FORBIDDEN`.
+- Review findings: none target I2.
+
+### Tests
+- Backend: 171 run, 0 failed, 0 skipped (new: VeterinarianServiceTests 4, OwnerServiceTests 3, PetServiceTests 9). Frontend lint and build pass.
+
+### Blockers
+- None
