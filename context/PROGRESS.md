@@ -114,3 +114,25 @@
 
 ### Added
 - Added a fifth plan review that confirmed the veterinarian list and allowed-actions test fixes, and flagged a weak pet history slice test and a reservation TTL override that may not take effect in the manual expiry check.
+
+## 2026-10-19 — Increment 1: Core domain model and appointment lifecycle
+- Status: completed
+
+### Behavior delivered
+- Added every domain entity, enum and repository (`UserAccount`, `ClinicService`, `Veterinarian` with `ScheduleBlock`, `Owner`, `Pet`, `Appointment`, `Payment`, `Breed`/`Species`), the `DomainException` family, `PageResponse` and the `Clock` bean. The H2 schema is created from them and the backend still starts (`/api/health` returned 200).
+- `AppointmentLifecycle` owns the full TASK.md transition table (12 rows including EXPIRE), role checks, required cancel reason, reservation expiry check on CONFIRM, observation edit window and `allowedActions`.
+- `ScheduleValidator` and the `Pet` breed/species check enforce their invariants; `AppointmentRepository` has the overlap, blocking-day, expiry and reschedule-link queries.
+
+### Decisions and deviations
+- Completion criteria (all met): `./mvnw verify` BUILD SUCCESS; `npm run lint` clean; `npm run build` succeeds; backend started with `spring-boot:run` and `GET /api/health` returned 200. The plan file has no checkboxes and is guarded from direct edits, so criteria are recorded here and the status was set via script.
+- `UserAccount.username` and `Owner.phone` use `@Column(unique = true)` (which creates the index) instead of a separate `@Index`, to avoid a duplicate index.
+- `RESCHEDULED` is treated as final in `AppointmentStatus.isFinal()`, so observations are not editable there (as the plan states).
+- Overlap messages use an ASCII hyphen (`09:00-13:00`) rather than an en dash.
+- Review findings: none target I1 (check-plan-review-status reported no open findings for I1).
+- Ran `npm install` in `frontend/` because `node_modules` was missing; no frontend source changed.
+
+### Tests
+- Backend: 155 run, 0 failed, 0 skipped (AppointmentLifecycleTests 127, AppointmentRepositoryTests 13, ScheduleValidatorTests 8, BreedTests 5, plus the existing health and context tests). Frontend lint and build pass.
+
+### Blockers
+- None
