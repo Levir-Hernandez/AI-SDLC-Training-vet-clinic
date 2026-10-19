@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { confirmFromDetail, finishAppointment, startAppointment } from "@/app/actions/appointments";
+import { closeAppointment, confirmFromDetail, finishAppointment, startAppointment } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { ObservationsEditor } from "@/components/ObservationsEditor";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -50,7 +50,7 @@ async function AppointmentDetail({ params }: { params: Promise<{ id: string }> }
     <>
       <div className="flex items-center gap-4">
         <h1 className="text-2xl font-semibold">Appointment #{a.id}</h1>
-        <StatusBadge status={a.status} />
+        <StatusBadge status={a.status} debt={a.debt} />
       </div>
       <dl className="flex flex-col gap-3">
         <Row label="Pet">
@@ -79,7 +79,10 @@ async function AppointmentDetail({ params }: { params: Promise<{ id: string }> }
       <AppointmentActions
         actions={a.allowedActions}
         appointmentId={a.id}
+        total={a.total}
+        status={a.status}
         handlers={{
+          CLOSE: closeAppointment.bind(null, a.id),
           CONFIRM: confirmFromDetail.bind(null, a.id),
           START: startAppointment.bind(null, a.id),
           FINISH: finishAppointment.bind(null, a.id),

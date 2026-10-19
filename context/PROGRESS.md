@@ -349,3 +349,23 @@
 
 ### Blockers
 - None
+
+## 2026-10-19 — Increment I13: Payments, closing and debts
+- Status: completed
+
+### Behavior delivered
+- Backend: `POST /api/appointments/{id}/payments` (receptionist only) returns 201 with the payment; wrong amount gives 409 `AMOUNT_MISMATCH`, a second payment 409 `ALREADY_PAID`, a non-finished appointment 409 `INVALID_TRANSITION`. `POST /api/appointments/{id}/close` (receptionist only) closes Paid appointments, or Finished ones as a debt (`debt: true`). `GET /api/appointments?debt=true` is now bound and lists only closed unpaid appointments.
+- Frontend: `PaymentDialog` (total shown, amount prefilled and editable, backend messages shown), Pay and Close actions on the board and detail page (Close is labelled "Close unpaid (debt)" on Finished and asks for confirmation), `/reception/debts` paginated list, a "Debt" badge for closed unpaid appointments, and a "Debts" link in the receptionist header.
+- Completion criteria: automated criteria met (`./mvnw verify`, `npm run lint`, `npm run build` pass). The live manual check with both apps running was not performed in this session; `PaymentFlowIntegrationTests` cover the same flow over HTTP.
+
+### Decisions and deviations
+- `PaymentService`, `PaymentRequest/Response` and `AppointmentActionService.close` already existed from I3, so only controllers and the `debt` binding were added on the backend.
+- Added `components/ConfirmButton.tsx` (small client component using `window.confirm`) for the Close confirmation; not listed in the plan.
+- `AppointmentActions` gained optional `total` and `status` props (needed for the Pay dialog and the Close label); `StatusBadge` gained an optional `debt` prop.
+- No open review findings target I13.
+
+### Tests
+- Backend: 342 run, 0 failed, 0 skipped (new: PaymentControllerTests, PaymentFlowIntegrationTests, 3 AppointmentControllerTests cases). Frontend: lint and build pass; no frontend test suite.
+
+### Blockers
+- None

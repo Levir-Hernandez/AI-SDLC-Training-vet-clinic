@@ -79,6 +79,13 @@ public class AppointmentController {
         return actions.updateObservations(CurrentUser.from(authentication), id, request.observations());
     }
 
+    /** Reception closes a paid appointment, or a finished unpaid one as a debt. */
+    @PostMapping("/{id}/close")
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public AppointmentResponse close(Authentication authentication, @PathVariable Long id) {
+        return actions.close(CurrentUser.from(authentication), id);
+    }
+
     /** Reception moves or reassigns the appointment; the response is the new linked appointment. */
     @PostMapping("/{id}/reschedule")
     @PreAuthorize("hasRole('RECEPTIONIST')")
@@ -104,8 +111,9 @@ public class AppointmentController {
                                                   @RequestParam(required = false)
                                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                   @RequestParam(required = false) Long veterinarianId,
+                                                  @RequestParam(required = false) Boolean debt,
                                                   @PageableDefault(size = 20) Pageable pageable) {
-        AppointmentFilter filter = new AppointmentFilter(status, date, veterinarianId, null, ongoing);
+        AppointmentFilter filter = new AppointmentFilter(status, date, veterinarianId, debt, ongoing);
         return queries.list(CurrentUser.from(authentication), filter, pageable);
     }
 

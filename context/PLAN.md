@@ -1129,7 +1129,7 @@ Frontend:
 
 ### I13 — Payments, closing and debts
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception records one exact payment on a finished appointment, closes paid appointments, or closes finished unpaid ones as debts listed on a debts screen.
 - **Covers:** Flow "Pay and close" (UI + API); lifecycle rows Finished→Paid, Finished→Closed (debt), Paid→Closed; rule "Closed is final"; acceptance "payment accepted only for a finished appointment and only for its exact total; second payment rejected", "finished appointment closed without payment appears as a debt", "reception sees all ongoing appointments with cancel and payment actions" (payment part).
 - **Depends on:** I12

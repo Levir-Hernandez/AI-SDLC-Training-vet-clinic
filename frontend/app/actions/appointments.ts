@@ -8,6 +8,7 @@ import type { Appointment, CreateAppointmentRequest } from "@/lib/types";
 export type BookingResult = { error?: string; slotTaken?: boolean; appointment?: Appointment };
 export type CancelResult = { error?: string; reasonError?: string };
 export type ConfirmResult = { error?: string; expired?: boolean };
+export type PayResult = { error?: string; amountError?: string };
 export type ObservationsState = { error?: string; saved?: boolean };
 
 async function runVisitAction(id: number, action: "start" | "finish"): Promise<void> {
@@ -104,6 +105,39 @@ export async function cancelAppointment(id: number, reason: string): Promise<Can
     if (field) return { reasonError: field.message };
     return { error: error.message };
   }
+  redirect(`/appointments/${id}`);
+}
+
+/** Records the exact payment; the dialog shows `AMOUNT_MISMATCH` / `ALREADY_PAID` messages. */
+export async function payAppointment(id: number, amount: string): Promise<PayResult> {
+  try {
+    await apiPost(`/api/appointments/${id}/payments`, { amount });
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    const field = error.fieldErrors.find((e) => e.field === "amount");
+    if (field) return { amountError: field.message };
+    if (error.code === "AMOUNT_MISMATCH") return { error: "The amount must equal the appointment total exactly." };
+    if (error.code === "ALREADY_PAID") return { error: "This appointment was already paid." };
+    if (error.code === "INVALID_TRANSITION") return { error: "This appointment can no longer be paid." };
+    return { error: error.message };
+  }
+  revalidatePath(`/appointments/${id}`);
+  revalidatePath("/reception/appointments");
+  redirect(`/appointments/${id}`);
+}
+
+/** Form-action variant of close: Paid -> Closed, or Finished -> Closed as a debt. */
+export async function closeAppointment(id: number, formData: FormData): Promise<void> {
+  void formData;
+  try {
+    await apiPost<Appointment>(`/api/appointments/${id}/close`);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    // The page reloads with the current state and allowed actions, so a stale click is harmless.
+  }
+  revalidatePath(`/appointments/${id}`);
+  revalidatePath("/reception/appointments");
+  revalidatePath("/reception/debts");
   redirect(`/appointments/${id}`);
 }
 

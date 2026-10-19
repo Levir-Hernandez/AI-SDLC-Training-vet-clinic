@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { finishAppointment, startAppointment } from "@/app/actions/appointments";
+import { closeAppointment, finishAppointment, startAppointment } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -104,13 +104,16 @@ async function Board({ searchParams }: { searchParams: Promise<Params> }) {
                     <td className="py-2 pr-4">{a.service.name}</td>
                     <td className="py-2 pr-4">{a.veterinarian.name}</td>
                     <td className="py-2 pr-4">
-                      <StatusBadge status={a.status} />
+                      <StatusBadge status={a.status} debt={a.debt} />
                     </td>
                     <td className="py-2 pr-4">
                       <AppointmentActions
                         actions={a.allowedActions}
                         appointmentId={a.id}
+                        total={a.total}
+                        status={a.status}
                         handlers={{
+                          CLOSE: closeAppointment.bind(null, a.id),
                           START: startAppointment.bind(null, a.id),
                           FINISH: finishAppointment.bind(null, a.id),
                         }}

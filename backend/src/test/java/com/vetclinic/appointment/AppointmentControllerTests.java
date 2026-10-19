@@ -280,7 +280,35 @@ class AppointmentControllerTests {
     }
 
     @Test
-    void noTokenReturns401() throws Exception {
+    void receptionistClosesAppointment() throws Exception {
+        when(actions.close(any(), any())).thenReturn(response());
+
+        mockMvc.perform(post("/api/appointments/5/close").header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void veterinarianCannotClose() throws Exception {
+        mockMvc.perform(post("/api/appointments/5/close")
+                        .header("Authorization", "Bearer " + TestJwt.forRole(Role.VETERINARIAN)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void debtParamReachesService() throws Exception {
+        when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(), 0, 20, 0));
+
+        mockMvc.perform(get("/api/appointments?debt=true")
+                        .header("Authorization", "Bearer " + TestJwt.receptionist()))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<AppointmentFilter> captor = ArgumentCaptor.forClass(AppointmentFilter.class);
+        verify(queries).list(any(), captor.capture(), any());
+        assertEquals(Boolean.TRUE, captor.getValue().debt());
+    }
+
+    @Test
+    void noTokenReturns401()throws Exception {
         mockMvc.perform(get("/api/appointments")).andExpect(status().isUnauthorized());
     }
 }
