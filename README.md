@@ -2,49 +2,55 @@
 
 ```
 .claude/
-├── agents/                 
-│   ├── planner.md          
-│   └── plan-reviewer.md    
-├── skills/                 
-│   ├── generate-plan/      
-│   ├── review-plan/        
-│   ├── revise-plan/        
-│   ├── update-progress/    
-│   └── update-changelog/   
-└── rules/                  
-    ├── java-coder.md       
-    ├── java-tester.md      
-    ├── react-coder.md      
-    └── react-tester.md     
+├── agents/
+│   ├── planner.md
+│   ├── plan-reviewer.md
+│   └── implementation.md
+├── commands/
+│   └── implement-increment.md
+├── scripts/
+│   ├── read-increment.py
+│   ├── check-increment-status.py
+│   ├── check-plan-review-status.py
+│   ├── update-increment-status.py
+│   └── guard-plan-context.py
+├── skills/
+│   ├── generate-plan/
+│   ├── review-plan/
+│   ├── revise-plan/
+│   ├── update-progress/
+│   └── update-changelog/
+└── rules/
+    ├── java-coder.md
+    ├── java-tester.md
+    ├── react-coder.md
+    └── react-tester.md
 ```
 
-Loop: `/generate-plan` → `/review-plan [approach]` → while the verdict is not `READY`: `/revise-plan [codes] [-- context]` → `/review-plan`.
+Plan Loop: `/generate-plan` → `/review-plan [approach]` → while the verdict is not `READY`: `/revise-plan [codes] [-- context]` → `/review-plan`.
 
 The harness is described in more detail in `HARNESS_ARCHITECTURE.md`.
 
 ## Key Takeaways
 
-- Added an `approach` argument to `/review-plan` to guide the review toward a specific strategy: establish the core domain models and business rules in the initial increments, then apply vertical slicing once that foundation is in place.
-- Added a `context` argument to `/revise-plan` to provide additional guidance when the reviewer's proposed solution does not meet the expected criteria or requires assumptions that could affect the plan.
-- Added a **Decisions Log** section to `PLAN_REVIEW` to document decisions and assumptions when context is passed to `/revise-plan`.
-- These changes reduce manual review effort by guiding the planning and revision processes while preserving control over architectural decisions and dependencies.
+- Each increment gets its own commit. For now, I manually verify that the implementation matches the increment's description but also a code reviewer agent could review the diffs, identify issues, and flag discrepancies between the implementation and the expected outcome.
+- Isolating each increment's context with deterministic scripts, instead of letting the agent read the whole plan, can save tokens.
+- In each increment, don't fully trust the agent's report: review the diff and check for false positives.
+- A fine-grained plan lets cheaper models like Sonnet implement without the risk of making architectural decisions.
+- Token savings can come from tight context or from output compression (RTK), but combining both may hurt code generation.
 
 ## Challenges Encountered
 
-- Using a single planner to create an implementation plan for a project with different technologies, such as separate backend and frontend technologies in this case, can introduce inconsistencies across multiple layers. This problem is not solved simply by using specialized agents. Instead, defining **integration guidelines** increases the likelihood of producing a consistent plan. These guidelines could include basing the frontend on the backend API contract or defining a transversal contract between entities, as in this case with the `appointments` entity.
-
-- The initial `/generate-plan` output I got followed a **vertical-slicing** approach, building each domain entity end to end (model, services, security, UI) before moving on to the next. While this works well for vibe coding, where each increment can be tested and refined immediately, it is less favorable for defining the entire plan upfront. The main drawback is that dependencies between increments are organized per entity rather than by layer or module. As a result, incremental generation is more prone to inconsistencies, and plan revisions tend to affect other increments.
-
-- After manually reviewing the generated plan, I realized that although the plan itself was good, its approach (vertical slicing) was not ideal. However, a simple `/review-plan` did not identify this issue; it merely iterated over the plan and refined it without proposing substantial changes. Since the plan's deliverables were good but poorly organized, I thought there had to be a better alternative to reviewing and restructuring it entirely by hand. I then adjusted the `/review-plan` definition to address this challenge.
-
-- When `/revise-plan` is invoked, it uses the suggested fix for each issue identified during the plan review. The fix usually meets the reviewer's criteria when `/review-plan` is called with an `approach` argument. However, sometimes the proposed solution does not meet the expected criteria, makes assumptions, or could trigger cascading issues. Providing additional context helps steer the suggested fix and revise the plan safely without requiring a manual review.
+- Token economics and context management were the main challenges in this phase. There are many approaches, each with its own benefits; I opted for Python scripts that control access to each increment's context in isolation.
+- With the Read and Write tools used so heavily on the repository, blocking them completely isn't practical. I added a hook, `guard-plan-context.py`, that blocks direct tool access to `PLAN.md` and `PLAN_REVIEW.md` while leaving every other file accessible. For those two files, it enforces deterministic scripts to read and update only what's needed:
+  - `read-increment.py <n>`
+  - `check-increment-status.py <n>`
+  - `check-plan-review-status.py <n>`
+  - `update-increment-status.py <n> <status>`
+- While supervising an `implement-increment` run, I noticed the Write tool sometimes hits EOF errors that keep changes from being applied. Usually the model catches the error and retries or tries another approach, mostly harmless apart from the extra token usage. In one case, though, the increment finished without any of the expected frontend work: the call failed, the model ignored the error and continued as if the files had been written. The tests didn't catch it either, because that functionality had no tests yet, so the suite passed and gave a false positive.
 
 ## Interesting Findings
 
-- Enforcing the generation of high-level specifications in the plan format first, including the overview, architectural decisions, API endpoints, and frontend views, before proceeding with the increment definitions helps the LLM constrain the generation process and keep increments within the established boundaries, using the attention mechanism to reduce inconsistencies across the plan.
-
-- A planner-reviewer does not need the context that the planner acquires while creating the plan to review and refine it correctly. Focusing on `TASK` as a reference to identify inconsistencies in definitions, increment dependencies, backend APIs, and their usage in the frontend guidelines can produce similar results with a more context-efficient approach.
-
-- To change the vertical-slicing approach used in my initial plan, I defined an `approach` argument for `/review-plan`, instructing it to focus on establishing the core domain models and business rules in the initial increments. Once this foundation is in place, subsequent increments can continue using vertical slicing. This approach helps ensure that vertical slices are more likely to respect the dependencies established by the domain models and business rules.
-
-- I believe these skills can produce good results even without guidance, as long as we review the output manually afterward. But building ways to guide them does more than save review time: it lets us hand off our focused judgment to a tool that's excellent at following instructions but struggles to adopt a particular perspective without spending a lot of tokens.
+- Splitting the plan into per-increment files helps manage context, but it introduces serious synchronization problems, so I decided scripts were the better approach.
+- Cheaper models like Sonnet give good results in this phase, but the implementation plan should be refined and specified at a fine-grained level, so Sonnet isn't pushed to make complex architectural decisions about the code.
+- Since the context is already tight (one increment at a time, not the whole plan) and there's no centralized track of the complete implementation phase, RTK to cut token usage on Bash, Write and Read probably won't help much with code generation. An inverse strategy could get similar results and token costs: broader context strategies plus RTK to compress the cost of Bash, Write and Read calls.
