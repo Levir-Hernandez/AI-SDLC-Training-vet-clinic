@@ -50,7 +50,7 @@ class ScheduleValidatorTests {
     void overlapMessageNamesBlocks() {
         assertThatThrownBy(() -> validator.validate(List.of(
                 block(DayOfWeek.MONDAY, 9, 13), block(DayOfWeek.MONDAY, 12, 15))))
-                .hasMessage("Blocks on MONDAY 09:00-13:00 and 12:00-15:00 overlap");
+                .hasMessage("Blocks on Monday 09:00-13:00 and 12:00-15:00 overlap");
     }
 
     @Test
@@ -61,7 +61,7 @@ class ScheduleValidatorTests {
     @Test
     void blockWithStartAfterEndIsRejected() {
         assertThatThrownBy(() -> validator.validate(List.of(block(DayOfWeek.MONDAY, 13, 9))))
-                .hasMessage("Block on MONDAY must start before it ends");
+                .hasMessage("Block on Monday must start before it ends");
     }
 
     @Test

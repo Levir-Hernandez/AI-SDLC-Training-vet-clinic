@@ -5,5 +5,8 @@ import com.vetclinic.owner.Species;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record CreatePetRequest(@NotBlank String name, @NotNull Species species, @NotNull Breed breed) {
+public record CreatePetRequest(
+        @NotBlank(message = "Enter the pet's name.") String name,
+        @NotNull(message = "Select a species.") Species species,
+        @NotNull(message = "Select a breed.") Breed breed) {
 }

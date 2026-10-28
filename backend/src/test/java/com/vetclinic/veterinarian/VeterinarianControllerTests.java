@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -100,6 +101,33 @@ class VeterinarianControllerTests {
                         .contentType(MediaType.APPLICATION_JSON).content(VALID))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_SCHEDULE"));
+    }
+
+    @Test
+    @DisplayName("BUG-002: empty registration returns readable field messages, not framework defaults")
+    void emptyRegistrationReturnsReadableFieldMessages() throws Exception {
+        mockMvc.perform(post("/api/veterinarians").header("Authorization", receptionist())
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"name":"","specialization":"","username":"","password":"abc",
+                                 "schedule":[{"day":"MONDAY","start":"09:00","end":"13:00"}]}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[?(@.field == 'name')].message").value("Enter the veterinarian's name."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'specialization')].message").value("Enter the specialization."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'costPerService')].message").value("Enter the cost per service."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'username')].message").value("Enter a username."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'password')].message")
+                        .value("The password must have at least 6 characters."));
+        verifyNoInteractions(veterinarianService);
+    }
+
+    @Test
+    @DisplayName("BUG-002: negative cost returns a readable field message")
+    void negativeCostReturnsReadableFieldMessage() throws Exception {
+        mockMvc.perform(post("/api/veterinarians").header("Authorization", receptionist())
+                        .contentType(MediaType.APPLICATION_JSON).content(VALID.replace("15.00", "-5")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[?(@.field == 'costPerService')].message")
+                        .value("The cost per service cannot be negative."));
     }
 
     @Test

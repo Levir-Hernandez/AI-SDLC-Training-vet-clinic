@@ -8,8 +8,9 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public record CreateOwnerRequest(
-        @NotBlank String name,
-        @NotBlank @Pattern(regexp = "^\\+?[0-9 ()-]{7,20}$", message = "must be a valid phone number") String phone,
-        @NotNull @Size(min = 6) String password,
+        @NotBlank(message = "Enter the owner's name.") String name,
+        @NotBlank(message = "Enter a phone number.")
+        @Pattern(regexp = "^\\+?[0-9 ()-]{7,20}$", message = "Enter a valid phone number (7 to 20 digits).") String phone,
+        @NotNull(message = "Enter a password.") @Size(min = 6, message = "The password must have at least 6 characters.") String password,
         @Valid List<CreatePetRequest> pets) {
 }

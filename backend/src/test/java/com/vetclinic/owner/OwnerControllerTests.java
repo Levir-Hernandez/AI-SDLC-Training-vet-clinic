@@ -18,6 +18,7 @@ import com.vetclinic.shared.error.ConflictException;
 import com.vetclinic.shared.error.GlobalExceptionHandler;
 import com.vetclinic.support.TestJwt;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -69,6 +70,24 @@ class OwnerControllerTests {
                         .contentType(MediaType.APPLICATION_JSON).content(VALID.replace("\"5550001\"", "\"\"")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[?(@.field == 'phone')]").exists());
+    }
+
+    @Test
+    @DisplayName("BUG-002: empty registration returns readable field messages, not framework defaults")
+    void emptyRegistrationReturnsReadableFieldMessages() throws Exception {
+        mockMvc.perform(post("/api/owners").header("Authorization", receptionist())
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"name":"","phone":"","password":"abc",
+                                 "pets":[{"name":"","species":null,"breed":null}]}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[?(@.field == 'name')].message").value("Enter the owner's name."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'phone' && @.message == 'Enter a phone number.')]").exists())
+                .andExpect(jsonPath("$.errors[?(@.field == 'password')].message")
+                        .value("The password must have at least 6 characters."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'pets[0].name')].message").value("Enter the pet's name."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'pets[0].species')].message").value("Select a species."))
+                .andExpect(jsonPath("$.errors[?(@.field == 'pets[0].breed')].message").value("Select a breed."));
+        verifyNoInteractions(ownerService);
     }
 
     @Test
