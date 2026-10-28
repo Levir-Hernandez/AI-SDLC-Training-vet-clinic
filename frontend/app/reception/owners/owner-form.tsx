@@ -5,13 +5,15 @@ import { createOwner, type OwnerFormState } from "@/app/actions/owners";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { FormField } from "@/components/FormField";
 import { PetFields } from "@/components/PetForm";
+import { useSubmitKeepingValues } from "@/lib/useSubmitKeepingValues";
 
 export function OwnerForm() {
   const [state, action, pending] = useActionState<OwnerFormState, FormData>(createOwner, {});
+  const submit = useSubmitKeepingValues(action);
   const errors = state.fieldErrors;
 
   return (
-    <form action={action} noValidate className="flex flex-col gap-4">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <h2 className="text-xl font-semibold">Register an owner</h2>
       <ErrorMessage message={state.error} />
       <div className="grid gap-4 sm:grid-cols-3">

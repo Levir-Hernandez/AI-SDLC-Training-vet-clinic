@@ -4,16 +4,18 @@ import { useActionState } from "react";
 import { addPet, type OwnerFormState } from "@/app/actions/owners";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { PetFields } from "@/components/PetForm";
+import { useSubmitKeepingValues } from "@/lib/useSubmitKeepingValues";
 
 export function AddPetForm({ ownerId }: { ownerId: number }) {
   const [state, action, pending] = useActionState<OwnerFormState, FormData>(
     addPet.bind(null, ownerId),
     {},
   );
+  const submit = useSubmitKeepingValues(action);
   const errors = state.fieldErrors;
 
   return (
-    <form action={action} noValidate className="flex flex-col gap-4">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <h2 className="text-xl font-semibold">Add a pet</h2>
       <ErrorMessage message={state.error} />
       <PetFields

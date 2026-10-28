@@ -5,6 +5,7 @@ import { createVeterinarian, type CreateVeterinarianState } from "@/app/actions/
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { FormField } from "@/components/FormField";
 import type { Weekday } from "@/lib/types";
+import { useSubmitKeepingValues } from "@/lib/useSubmitKeepingValues";
 
 const WEEKDAYS: { value: Weekday; label: string }[] = [
   { value: "MONDAY", label: "Monday" },
@@ -28,6 +29,7 @@ export function VeterinarianForm() {
   const [rows, setRows] = useState<Row[]>([
     { key: 0, day: "MONDAY", start: "09:00", end: "13:00" },
   ]);
+  const submit = useSubmitKeepingValues(action);
   const [nextKey, setNextKey] = useState(1);
   const [clientError, setClientError] = useState<string>();
 
@@ -45,7 +47,6 @@ export function VeterinarianForm() {
 
   return (
     <form
-      action={action}
       noValidate
       onSubmit={(event) => {
         if (rows.length === 0) {
@@ -57,6 +58,7 @@ export function VeterinarianForm() {
         } else {
           setClientError(undefined);
         }
+        submit(event);
       }}
       className="flex flex-col gap-4"
     >
