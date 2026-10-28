@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -113,6 +114,22 @@ class AllowedActionsResponseTests {
         assertThat(actions(vet, AppointmentStatus.IN_PROGRESS)).containsExactlyInAnyOrder("FINISH", "EDIT_OBSERVATIONS");
         assertThat(actions(vet, AppointmentStatus.FINISHED)).containsExactly("EDIT_OBSERVATIONS");
         assertThat(actions(vet, AppointmentStatus.PAID)).containsExactly("EDIT_OBSERVATIONS");
+    }
+
+    @Test
+    @DisplayName("BUG-003: the ongoing list offers reception the same actions as the detail for a Reserved appointment")
+    void ongoingListOffersReceptionConfirmForReserved() throws Exception {
+        String json = mockMvc.perform(get("/api/appointments?ongoing=true&size=100")
+                        .header("Authorization", "Bearer " + reception))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        List<String> listed = new ArrayList<>();
+        mapper.readTree(json).get("content").forEach(n -> {
+            if (n.get("id").asLong() == ids.get(AppointmentStatus.RESERVED)) {
+                n.get("allowedActions").forEach(a -> listed.add(a.asString()));
+            }
+        });
+        assertThat(listed).contains("CONFIRM", "CANCEL")
+                .containsExactlyInAnyOrderElementsOf(actions(reception, AppointmentStatus.RESERVED));
     }
 
     @Test

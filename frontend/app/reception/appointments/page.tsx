@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { closeAppointment, finishAppointment, startAppointment } from "@/app/actions/appointments";
+import { closeAppointment, confirmFromDetail, finishAppointment, startAppointment } from "@/app/actions/appointments";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -118,6 +118,7 @@ async function Board({ searchParams }: { searchParams: Promise<Params> }) {
                         status={a.status}
                         handlers={{
                           CLOSE: closeAppointment.bind(null, a.id),
+                          CONFIRM: confirmFromDetail.bind(null, a.id),
                           START: startAppointment.bind(null, a.id),
                           FINISH: finishAppointment.bind(null, a.id),
                         }}
