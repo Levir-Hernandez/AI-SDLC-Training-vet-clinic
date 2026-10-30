@@ -1,70 +1,67 @@
 # Harness Architecture
 
-How the Claude Code harness in `.claude/` turns `TASK.md` into one reviewed implementation plan and implements it increment by increment. This file is for humans; no agent, skill or rule reads it.
+How the Claude Code harness in `.claude/` turns `TASK.md` into a reviewed plan, builds it increment by increment, then tests it in a browser and fixes bugs one at a time. This file is for humans; no agent, skill or rule reads it.
 
 ## 1. Structure
 
 ```
 .claude/
-├── agents/                 Who: role, boundaries, hierarchy of truth, judgment
-│   ├── planner.md          Writes and revises context/PLAN.md
-│   ├── plan-reviewer.md    Reviews the plan → context/PLAN_REVIEW.md (never edits the plan)
-│   └── implementation.md   Implements one increment; plan access only through scripts
-├── commands/
-│   └── implement-increment.md   /implement-increment <n>: pre-checks, then runs the implementation agent
-├── scripts/                Plan access for the implementer (Python)
-│   ├── read-increment.py            Plan header + one increment
-│   ├── check-increment-status.py    OK/BLOCKED: pending or blocked, dependencies completed; --list
-│   ├── check-plan-review-status.py  OK/BLOCKED from the verdict + open findings for the increment
-│   ├── update-increment-status.py   Sets one increment to pending | completed | blocked
-│   └── guard-plan-context.py        Hook: blocks direct access to PLAN.md and PLAN_REVIEW.md
-├── skills/                 How: steps, formats, replies (plan skills run forked in their agent)
-│   ├── generate-plan/      Plan format; at most 20 vertical increments          (planner)
-│   ├── review-plan/        Checks, severities, verdict, decisions log           (plan-reviewer)
-│   ├── revise-plan/        Fixes findings: [codes] [-- context]                 (planner)
-│   ├── update-progress/    Appends an entry to PROGRESS.md
-│   └── update-changelog/   Merges new entries into CHANGELOG.md [Unreleased]
-└── rules/                  Path-scoped general guidelines for the implementer
-    ├── java-coder.md       backend/src/main, pom.xml
-    ├── java-tester.md      backend/src/test
-    ├── react-coder.md      frontend sources
-    └── react-tester.md     frontend tests
+├── agents/                 Who: role, boundaries, judgment
+│   ├── planner.md          Writes and revises the plan
+│   ├── plan-reviewer.md    Reviews the plan (never edits it)
+│   ├── implementation.md   Builds one increment
+│   ├── qa.md               Tests in the browser, reports and verifies bugs
+│   └── refactor.md         Fixes one bug and implement regression tests
+├── commands/               Entry points typed in the main session
+│   ├── implement-increment.md   /implement-increment <n>
+│   ├── setup-qa-env.md          /setup-qa-env
+│   ├── qa-env-healthcheck.md    /qa-env-healthcheck
+│   ├── plan-qa.md               /plan-qa [focus]
+│   ├── run-qa.md                /run-qa
+│   ├── implement-fix.md         /implement-fix BUG-xxx
+│   └── verify-fix.md            /verify-fix BUG-xxx
+├── scripts/                Deterministic file access and guards (Python)
+│   ├── read-increment.py, check-increment-status.py,
+│   │   check-plan-review-status.py, update-increment-status.py   Plan access
+│   ├── read-bug.py, check-bug-status.py, update-bug-status.py    Bug access
+│   ├── qa-env.py, check-playwright.py, make-gif.py               QA environment and evidence
+│   ├── guard-plan-context.py   Hook: blocks direct access to PLAN.md / PLAN_REVIEW.md
+│   └── guard-fix-scope.py      Hook: keeps the refactor agent inside its scope
+├── skills/                 How: steps and formats
+│   ├── generate-plan/, review-plan/, revise-plan/
+│   └── update-progress/, update-changelog/
+├── rules/                  Path-scoped coding/testing rules (java-*, react-*)
+└── settings.json           Permissions + enables the Playwright MCP server (.mcp.json)
 ```
 
 | File | Role |
 |---|---|
-| `TASK.md` | Requirements: application, flows, business rules, technology constraints, acceptance criteria, out of scope |
-| `CLAUDE.md` | Where things are, how to run and test, general agent behavior |
-| `context/PLAN.md` | The single plan: increments with status, API and views summaries, assumptions |
-| `context/PLAN_REVIEW.md` | Findings by severity, verdict, resolved findings, decisions log |
-| `context/PROGRESS.md` | Append-only journal, one entry per action (Added / Changed / Fixed / Removed) |
-| `context/CHANGELOG.md` | Keep a Changelog summary built from the journal |
+| `TASK.md` | Requirements and acceptance criteria |
+| `CLAUDE.md` | Where things are, how to run and test, agent behavior |
+| `context/PLAN.md`, `PLAN_REVIEW.md` | The plan and its review |
+| `context/QA_SCENARIOS.md` | QA scenarios mapped to acceptance criteria |
+| `context/BUGS.md` | Bugs with steps, evidence and status |
+| `context/QA_REPORT.md` | Latest QA pass results |
+| `context/evidence/` | Screenshots and GIFs |
+| `context/PROGRESS.md`, `CHANGELOG.md` | Journal and its summary |
 
 ## 2. Key ideas
 
-- **One plan, one source of truth.** Each increment is a vertical slice (backend + frontend + tests), so nothing has to be synchronized between plans.
-- **Agents hold judgment, skills hold procedure.** Agents define role, boundaries, hierarchy of truth and judgment; skills define steps, formats and replies.
-- **Separate author and reviewer.** The reviewer never edits the plan (no `Edit` tool). The planner only marks findings `fixed` and appends user context to the decisions log.
-- **Strict ordering.** Increments depend only on I0 (the skeleton) or earlier increments; forward dependencies are reordered or re-split, never left as placeholders.
-- **Consistency focus in review.** Increment order, backend API definitions and frontend usage of that API are checked against each other and against the `TASK.md` state diagram.
-- **User decisions are recorded.** Context passed to `revise-plan` after `--` is logged verbatim in the decisions log and carried forward on every review pass.
-- **Preservation.** Regeneration never changes `in-progress` or `done` increments.
-- **Verdicts.** `READY` (no open blockers or majors) · `READY WITH MINOR CHANGES` (1–2 open majors) · `REVISE BEFORE IMPLEMENTATION` (any blocker or more than 2 majors). `needs context` counts as open.
-- **Scripted plan access.** The implementer reads one increment (~170 lines instead of ~1,400) and changes only its status line through scripts; a hook blocks direct access. The plan stays the single copy and the pre-checks are deterministic.
-- **Increment statuses.** `pending` → `completed` only after all completion criteria pass; `blocked` on failure (can be retried). Outcomes go to `PROGRESS.md`.
-- **Simple runtime.** H2 in-memory, JWT auth (HttpOnly cookie on the frontend), no Docker. Each increment is verified with `./mvnw verify`, `npm run lint`, `npm run build` and a manual check with both apps running.
+- **One plan, vertical increments.** Each increment is backend + frontend + tests.
+- **Agents hold judgment, skills hold procedure.**
+- **Author and checker are separate.** Planner vs. plan-reviewer; refactor vs. qa.
+- **Scripted access.** Agents read one increment or one bug through scripts; hooks block direct access, so big files are never read or rewritten whole.
+- **QA tests like a user.** The qa agent drives a real browser through Playwright MCP and writes only QA files and evidence.
+- **Small fixes.** One bug per `/implement-fix`, root cause plus a regression test.
+- **Statuses.** Increments: `pending` → `completed` | `blocked`. Bugs: `Open` → `In Progress` → `Fixed` → `Verified` (back to `Open` if reproduced).
 
 ## 3. Flow
 
 ```
-1. generate-plan              (planner)        → PLAN.md
-2. review-plan                (plan-reviewer)  → PLAN_REVIEW.md + verdict
-3. revise-plan [codes] [-- context]  (planner) → PLAN.md, findings marked fixed, context logged
-   repeat 2–3 until READY
-Each step ends with update-progress → update-changelog.
-
-4. /implement-increment <n>   (implementation) → code + tests, PROGRESS.md entry, status completed | blocked
-   review the diff, then the next increment
+Plan       generate-plan → review-plan → revise-plan   (repeat until READY)
+Build      /implement-increment <n>                    (one increment at a time)
+QA         /qa-env-healthcheck → /plan-qa → /run-qa    (bugs into BUGS.md)
+Fix        /implement-fix BUG-xxx → /verify-fix BUG-xxx (one bug at a time)
 ```
 
-Findings use positional codes (`B1`, `M1`, `m1`) renumbered every pass; titles stay stable so findings can be tracked across passes.
+Planning, build and fix steps end with `update-progress` → `update-changelog`. Review each diff and its evidence before the next step.

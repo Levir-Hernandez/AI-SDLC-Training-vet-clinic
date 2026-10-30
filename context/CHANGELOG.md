@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] — 2026-10-17
+## [Unreleased] — 2026-10-28
 
 ### Added
 - Created an implementation plan with 14 ordered increments covering authentication, veterinarians and services, owners and pets, availability, walk-in and online booking, cancellation, visits, the reception board, rescheduling, payments and debts, pet history, badge consistency and a final acceptance pass.
@@ -26,6 +26,9 @@
 - Included the owner pet history page in the badge and allowed-actions consistency pass.
 
 ### Fixed
+- Replaced the framework validation messages on the owner, pet and veterinarian registration forms with clear per-field messages such as "Enter the owner's name." and "The password must have at least 6 characters", and the schedule error messages now name the day in normal case, e.g. "Blocks on Monday 09:00-13:00 and 11:00-14:00 overlap".
+- Fixed the reception ongoing appointments list so a Reserved appointment offers Confirm alongside Cancel, matching its detail page.
+- Fixed the veterinarian, owner and add-pet forms so a rejected submission keeps the entered values and every schedule Day select shows the day that is actually submitted.
 - Fixed the piecemeal design of the booking and action services, including the late extraction of the shared scheduled-booking method used by rescheduling.
 - Fixed the early use of the debt flag, which is now computed only after payments exist.
 - Bound the comma-separated status filter on the appointment list in the visit increment, with tests for valid and unknown values.

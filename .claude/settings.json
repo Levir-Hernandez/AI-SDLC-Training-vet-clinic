@@ -1,0 +1,25 @@
+{
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__playwright",
+      "Bash(python .claude/scripts/*)",
+      "Bash(./mvnw verify)",
+      "Bash(./mvnw test *)",
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(npm test)",
+      "Bash(cd backend && ./mvnw verify)",
+      "Bash(cd backend && ./mvnw test *)",
+      "Bash(cd frontend && npm run lint && npm run build)",
+      "Bash(cd frontend && npm run lint)",
+      "Bash(cd frontend && npm run build)",
+      "Bash(cd frontend && npm test)"
+    ],
+    "deny": [
+      "mcp__playwright__browser_install"
+    ]
+  }
+}

@@ -29,3 +29,6 @@ frontend/AGENTS.md
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Playwright MCP scratch output (snapshots, console logs)
+.playwright-mcp/
