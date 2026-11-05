@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { Pagination } from "@/components/Pagination";
@@ -38,7 +39,8 @@ export default async function MyPetsPage({
               <tr className="border-b border-zinc-300 dark:border-zinc-700">
                 <th className="py-2 pr-4">Name</th>
                 <th className="py-2 pr-4">Species</th>
-                <th className="py-2">Breed</th>
+                <th className="py-2 pr-4">Breed</th>
+                <th className="py-2">History</th>
               </tr>
             </thead>
             <tbody>
@@ -46,7 +48,12 @@ export default async function MyPetsPage({
                 <tr key={p.id} className="border-b border-zinc-200 dark:border-zinc-800">
                   <td className="py-2 pr-4">{p.name}</td>
                   <td className="py-2 pr-4">{SPECIES_LABELS[p.species]}</td>
-                  <td className="py-2">{breedLabel(p.breed)}</td>
+                  <td className="py-2 pr-4">{breedLabel(p.breed)}</td>
+                  <td className="py-2">
+                    <Link href={`/owner/pets/${p.id}/history`} className="underline">
+                      History
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

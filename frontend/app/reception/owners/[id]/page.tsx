@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -47,7 +48,10 @@ export default async function OwnerDetailPage({
           <ul className="flex flex-col gap-1">
             {pets.map((p) => (
               <li key={p.id}>
-                {p.name} - {SPECIES_LABELS[p.species]}, {breedLabel(p.breed)}
+                {p.name} - {SPECIES_LABELS[p.species]}, {breedLabel(p.breed)}{" "}
+                <Link href={`/reception/pets/${p.id}/history`} className="underline">
+                  History
+                </Link>
               </li>
             ))}
           </ul>

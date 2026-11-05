@@ -1004,3 +1004,40 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [backend/src/main/java/com/vetclinic/payment/PaymentController.java, backend/src/main/java/com/vetclinic/payment/PaymentService.java, backend/src/test/java/com/vetclinic/payment/PaymentControllerTests.java, backend/src/test/java/com/vetclinic/payment/PaymentFlowIntegrationTests.java, backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, frontend/components/PaymentDialog.tsx, frontend/app/reception/debts/page.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/components/StatusBadge.tsx, frontend/components/AppHeader.tsx]
+
+## [2026-11-05 01:24] — Increment — I14 attempt 1
+- agent: implementation
+- increment: I14
+- attempt: 1
+- summary: Reception and owners can open a pet's service history (upcoming and past sections).
+- files_created: [PetHistoryController, PetHistoryTests, PetHistoryView, reception/pets/[id]/history/page.tsx, owner/pets/[id]/history/page.tsx]
+- files_modified: [owner/pets/page.tsx, reception/owners/[id]/page.tsx, reception/appointments/page.tsx]
+- interfaces_created: [GET /api/pets/{id}/history]
+- decisions: [separate PetHistoryController per m1; integration test with real sign-ins per m2; shared PetHistoryView component for both pages; pet header taken from first history item]
+- deviations: [test-gap-owner-cancel-in-progress not added: starting an appointment needs time-window fixtures not present in this class; shared component added beyond listed files]
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added a pet service history page for reception and owners, with upcoming and past sections.
+
+## [2026-11-05 01:27] — TestRun — I14 attempt 1
+- agent: test-runner
+- increment: I14
+- attempt: 1
+- mode: increment
+- summary: backend verify 311 passed, frontend lint pass, frontend build pass (security notice, retried)
+- result: PASS
+- tests: 311 passed / 0 failed
+- coverage: 96.1% lines, 86.0% branches
+- failures: none
+
+## [2026-11-05 01:30] — CodeReview — I14 attempt 1
+- agent: code-review
+- increment: I14
+- attempt: 1
+- summary: Increment adds pet service history endpoint and pages for reception and owners; all acceptance criteria met, test coverage complete, no critical/high issues found.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/appointment/PetHistoryController.java, backend/src/test/java/com/vetclinic/appointment/PetHistoryTests.java, backend/src/main/java/com/vetclinic/appointment/AppointmentQueryService.java, backend/src/main/java/com/vetclinic/owner/PetService.java, frontend/components/PetHistoryView.tsx, frontend/app/owner/pets/[id]/history/page.tsx, frontend/app/reception/pets/[id]/history/page.tsx, frontend/app/owner/pets/page.tsx, frontend/app/reception/appointments/page.tsx, frontend/app/reception/owners/[id]/page.tsx]

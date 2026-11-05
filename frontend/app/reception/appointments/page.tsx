@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -93,7 +94,11 @@ export default async function ReceptionAppointmentsPage({
                 {data.content.map((a) => (
                   <tr key={a.id} className="border-b border-zinc-200 dark:border-zinc-800">
                     <td className="py-2 pr-4">{a.startAt.replace("T", " ").slice(0, 16)}</td>
-                    <td className="py-2 pr-4">{a.pet.name}</td>
+                    <td className="py-2 pr-4">
+                      <Link href={`/reception/pets/${a.pet.id}/history`} className="underline">
+                        {a.pet.name}
+                      </Link>
+                    </td>
                     <td className="py-2 pr-4">{a.ownerName}</td>
                     <td className="py-2 pr-4">{a.service.name}</td>
                     <td className="py-2 pr-4">{a.veterinarian.name}</td>
