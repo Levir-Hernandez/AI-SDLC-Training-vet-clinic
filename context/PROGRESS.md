@@ -530,3 +530,48 @@
 - tests: 234 passed / 0 failed
 - coverage: 95.8% lines, 85.5% branches
 - failures: none
+
+## [2026-11-05 00:11] — Validation — before I5
+- agent: planner
+- increment: I5
+- trigger: deviations
+- rewritten: none
+- summary: I5 checked against built code; CatalogService.list, VeterinarianService.create/list/get, PageResponse (backend and types.ts), apiGet/apiPost/ApiError, requireRole and AppHeader all exist as assumed.
+
+## [2026-11-05 00:13] — Increment — I5 attempt 1
+- agent: implementation
+- increment: I5
+- attempt: 1
+- summary: Added services and veterinarian controllers with slice tests, plus the reception veterinarians page with registration form.
+- files_created: [CatalogController, VeterinarianController, CatalogControllerTests, VeterinarianControllerTests, reception/layout.tsx, reception/veterinarians/page.tsx, veterinarian-form.tsx, actions/veterinarians.ts, EmptyState.tsx, Pagination.tsx]
+- files_modified: [lib/types.ts, AppHeader.tsx]
+- interfaces_created: [GET /api/services, GET /api/veterinarians, GET /api/veterinarians/{id}, POST /api/veterinarians]
+- decisions: [PageResponse in types.ts had totalPages which backend does not send, removed it and computed pages from totalElements/size; reception layout guards inside Suspense for cacheComponents]
+- deviations: PageResponse<T> totalPages field removed from lib/types.ts to match backend record
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added the services catalog endpoint and veterinarian list and registration endpoints.
+- Added the reception veterinarians page with a registration form including weekly schedule.
+
+## [2026-11-05 00:15] — TestRun — I5 attempt 1
+- agent: test-runner
+- increment: I5
+- attempt: 1
+- mode: increment
+- summary: Backend verify 243 passed, frontend lint pass, frontend build pass (security notice, retried)
+- result: PASS
+- tests: 243 passed / 0 failed
+- coverage: 96.0% lines, 85.5% branches
+- failures: none
+
+## [2026-11-05 00:14] — CodeReview — I5 attempt 1
+- agent: code-review
+- increment: I5
+- attempt: 1
+- summary: Services catalog and veterinarian registration endpoints implemented with slice tests; reception page with registration form and list view complete; all types and components in place.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [CatalogController.java, VeterinarianController.java, CatalogControllerTests.java, VeterinarianControllerTests.java, reception/layout.tsx, reception/veterinarians/page.tsx, veterinarian-form.tsx, actions/veterinarians.ts, EmptyState.tsx, Pagination.tsx, lib/types.ts, AppHeader.tsx]

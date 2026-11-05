@@ -34,5 +34,44 @@ export interface PageResponse<T> {
   page: number;
   size: number;
   totalElements: number;
-  totalPages: number;
+}
+
+export type Weekday =
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
+
+export interface Service {
+  id: number;
+  code: string;
+  name: string;
+  durationMinutes: number;
+  basePrice: number;
+}
+
+export interface ScheduleBlock {
+  day: Weekday;
+  start: string;
+  end: string;
+}
+
+export interface Veterinarian {
+  id: number;
+  name: string;
+  specialization: string;
+  costPerService: number;
+  schedule: ScheduleBlock[];
+}
+
+export interface CreateVeterinarianRequest {
+  name: string;
+  specialization: string;
+  costPerService: number;
+  username: string;
+  password: string;
+  schedule: ScheduleBlock[];
 }
