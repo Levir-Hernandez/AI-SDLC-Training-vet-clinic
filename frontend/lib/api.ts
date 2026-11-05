@@ -1,3 +1,4 @@
+import "server-only";
 import { redirect } from "next/navigation";
 import { clearSession, getToken } from "./session";
 import type { FieldError, ProblemDetail } from "./types";

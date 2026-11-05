@@ -1,3 +1,4 @@
+import "server-only";
 import { redirect } from "next/navigation";
 import { ApiError, apiFetch } from "./api";
 import { getToken } from "./session";
