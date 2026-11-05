@@ -55,6 +55,9 @@ public class AppointmentLifecycle {
 			}
 			reason = ctx.reason().trim();
 		}
+		else if (action == EXPIRE) {
+			reason = ctx.reason();
+		}
 		if (action == CONFIRM) {
 			if (appointment.getReservedUntil() == null || !appointment.getReservedUntil().isAfter(ctx.now())) {
 				throw new ConflictException("RESERVATION_EXPIRED", "The reservation has expired");

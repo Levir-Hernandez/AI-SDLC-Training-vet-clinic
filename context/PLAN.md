@@ -277,7 +277,7 @@ Frontend:
 
 ### I3 — Appointment and payment use cases
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** All appointment use cases (availability, walk-in and online booking, confirm, expire, cancel, start, finish, observations, reschedule/reassign, pay, close, scoped queries, debt and pet history) exist as application services in their final shape, unit tested with a fixed `Clock`, with concurrency proven at service level.
 - **Covers:** Flows "Book online", "Book a walk-in", "Visit", "Reschedule or reassign", "Cancel", "Pay and close", "Follow up" (service layer); every lifecycle row (via `AppointmentLifecycle`); rules "slot available when duration fits schedule and does not overlap reserved, scheduled or in-progress appointments", "appointments are booked in the future", "two bookings cannot take the same slot", "total = base price + veterinarian cost, fixed at booking", "one exact payment per finished appointment", "Rescheduled and Closed are final", "owners see only their own appointments"; acceptance "two bookings for same vet and overlapping time cannot both succeed" (service level), "unconfirmed reservation expires and slot becomes free" (service level).
 - **Depends on:** I1, I2
