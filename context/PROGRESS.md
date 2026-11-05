@@ -767,3 +767,76 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, backend/src/test/java/com/vetclinic/appointment/OnlineBookingIntegrationTests.java, frontend/app/owner/book/page.tsx, frontend/app/owner/book/online-booking-form.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/components/AppHeader.tsx, frontend/app/appointments/[id]/page.tsx]
+
+## [2026-11-05 00:44] — Validation — before I9
+- agent: planner
+- increment: I9
+- trigger: cadence
+- rewritten: none
+- summary: I9 still matches the code: AppointmentActionService.cancel and CancelRequest exist, and AppointmentActions can wire CANCEL itself like CONFIRM.
+
+## [2026-11-05 00:46] — Increment — I9 attempt 1
+- agent: implementation
+- increment: I9
+- attempt: 1
+- summary: Owners list their appointments and cancel with a reason through a dialog; backend cancel endpoint added.
+- files_created: [OwnerScopeIntegrationTests, owner/appointments/page.tsx, CancelDialog.tsx]
+- files_modified: [AppointmentController, AppointmentControllerTests, actions/appointments.ts, AppointmentActions.tsx, app/page.tsx]
+- interfaces_created: [POST /api/appointments/{id}/cancel, cancelAppointment server action]
+- decisions: [AppHeader already had owner My appointments link so unchanged; cancel wired only when appointmentId given]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added owner appointments list and cancellation with a reason.
+
+## [2026-11-05 00:47] — TestRun — I9 attempt 1
+- agent: test-runner
+- increment: I9
+- attempt: 1
+- mode: increment
+- summary: Backend compilation failed due to missing import; frontend lint passed; frontend build passed (security notice, retried)
+- result: FAIL
+- tests: 0 passed / compilation error
+- coverage: N/A (build failed)
+- failures: [backend verify: cannot find symbol: class CancelRequest in AppointmentController.java:60]
+
+## [2026-11-05 00:48] — CodeReview — I9 attempt 1
+- agent: code-review
+- increment: I9
+- attempt: 1
+- summary: Owner appointment listing and cancellation. Backend fails to compile: CancelRequest not imported.
+- result: FAIL
+- critical_high: backend/src/main/java/com/vetclinic/appointment/AppointmentController.java:60 CancelRequest used but not imported (needs com.vetclinic.appointment.dto.CancelRequest import)
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, backend/src/test/java/com/vetclinic/appointment/OwnerScopeIntegrationTests.java, frontend/app/actions/appointments.ts, frontend/components/CancelDialog.tsx, frontend/components/AppointmentActions.tsx, frontend/app/owner/appointments/page.tsx, frontend/app/page.tsx]
+
+## [2026-11-05 00:49] — Refactor — I9 attempt 2
+- agent: refactor
+- increment: I9
+- attempt: 2
+- summary: Gate fix: added the missing CancelRequest import in AppointmentController (compile error). Optional IN_PROGRESS owner-cancel test skipped.
+- files_modified: [AppointmentController]
+- tests: not run (test-runner)
+
+## [2026-11-05 01:30] — CodeReview — I9 attempt 2
+- agent: code-review
+- increment: I9
+- attempt: 2
+- summary: Owner appointment listing and cancellation. Backend import fixed from attempt 1. Backend enforces role/state constraints correctly; missing test for owner-cancel-IN_PROGRESS case.
+- result: PASS
+- critical_high: none
+- medium_findings: test-gap-owner-cancel-in-progress
+- files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/main/java/com/vetclinic/appointment/dto/CancelRequest.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, backend/src/test/java/com/vetclinic/appointment/OwnerScopeIntegrationTests.java, frontend/app/owner/appointments/page.tsx, frontend/components/CancelDialog.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/app/page.tsx]
+
+## [2026-11-05 00:54] — TestRun — I9 attempt 2
+- agent: test-runner
+- increment: I9
+- summary: Backend 277 tests passed, frontend lint and build passed with security notice retry
+- attempt: 2
+- mode: increment
+- result: PASS
+- tests: 277 passed / 0 failed
+- coverage: 95.7% lines, 86.0% branches
+- failures: none

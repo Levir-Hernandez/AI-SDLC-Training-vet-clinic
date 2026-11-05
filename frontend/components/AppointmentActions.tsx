@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { confirmAppointment } from "@/app/actions/appointments";
+import { cancelAppointment, confirmAppointment } from "@/app/actions/appointments";
+import { CancelDialog } from "@/components/CancelDialog";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import type { AppointmentAction } from "@/lib/types";
 
@@ -33,6 +34,9 @@ export function AppointmentActions({
   const router = useRouter();
   const [error, setError] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelError, setCancelError] = useState<string | undefined>();
+  const [cancelReasonError, setCancelReasonError] = useState<string | undefined>();
 
   const all: ActionHandlers = { ...handlers };
   if (appointmentId !== undefined) {
@@ -44,6 +48,27 @@ export function AppointmentActions({
         else setError(result.error);
       });
     };
+    all.CANCEL = () => {
+      setError(undefined);
+      setCancelError(undefined);
+      setCancelOpen(true);
+    };
+  }
+
+  function doCancel(reason: string) {
+    if (appointmentId === undefined) return;
+    setCancelError(undefined);
+    setCancelReasonError(undefined);
+    startTransition(async () => {
+      const result = await cancelAppointment(appointmentId, reason);
+      if (result.ok) {
+        setCancelOpen(false);
+        router.refresh();
+      } else {
+        setCancelReasonError(result.reasonError);
+        setCancelError(result.error);
+      }
+    });
   }
 
   const wired = allowedActions.filter((a) => all[a]);
@@ -64,6 +89,15 @@ export function AppointmentActions({
         ))}
       </div>
       <ErrorMessage message={error} />
+      {cancelOpen && (
+        <CancelDialog
+          pending={pending}
+          reasonError={cancelReasonError}
+          error={cancelError}
+          onConfirm={doCancel}
+          onClose={() => setCancelOpen(false)}
+        />
+      )}
     </div>
   );
 }

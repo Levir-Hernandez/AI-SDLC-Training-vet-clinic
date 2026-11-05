@@ -38,6 +38,30 @@ export async function confirmAppointment(id: number): Promise<ConfirmResult> {
   }
 }
 
+export interface CancelResult {
+  ok: boolean;
+  error?: string;
+  reasonError?: string;
+}
+
+export async function cancelAppointment(id: number, reason: string): Promise<CancelResult> {
+  try {
+    await apiPost<Appointment>(`/api/appointments/${id}/cancel`, { reason });
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 400) {
+        return { ok: false, reasonError: error.message, error: error.message };
+      }
+      if (error.status === 404) return { ok: false, error: "Appointment not found." };
+      if (error.status === 403 || error.status === 409) {
+        return { ok: false, error: error.message };
+      }
+    }
+    return { ok: false, error: "Could not cancel the appointment. Try again later." };
+  }
+}
+
 export async function bookAppointment(
   request: CreateAppointmentRequest,
 ): Promise<BookResult> {

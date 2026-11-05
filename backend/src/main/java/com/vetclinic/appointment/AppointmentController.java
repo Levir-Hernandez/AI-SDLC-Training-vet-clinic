@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vetclinic.appointment.dto.AppointmentFilter;
 import com.vetclinic.appointment.dto.AppointmentResponse;
+import com.vetclinic.appointment.dto.CancelRequest;
 import com.vetclinic.appointment.dto.CreateAppointmentRequest;
 import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
@@ -53,6 +54,13 @@ public class AppointmentController {
 	@PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
 	public AppointmentResponse confirm(@PathVariable Long id, Authentication authentication) {
 		return actions.confirm(CurrentUser.from(authentication), id);
+	}
+
+	@PostMapping("/{id}/cancel")
+	@PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
+	public AppointmentResponse cancel(@PathVariable Long id, @Valid @RequestBody CancelRequest request,
+			Authentication authentication) {
+		return actions.cancel(CurrentUser.from(authentication), id, request.reason());
 	}
 
 	@GetMapping

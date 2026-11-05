@@ -833,7 +833,7 @@ Frontend:
 
 ### I9 — Owner's appointments and cancellation
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Owners see all their appointments across pets and days with service, veterinarian, time and estimated duration, and cancel their own reserved or scheduled appointments with a reason.
 - **Covers:** Flows "Follow up" (owner part), "Cancel" (owner part, endpoint shared with reception); lifecycle rows Reserved→Cancelled and Scheduled→Cancelled (owner); rule "owners see only their own appointments"; acceptance "owner sees all their appointments across pets and days with estimated duration and cannot see other owners' data", "cancelling without a reason is rejected".
 - **Depends on:** I8

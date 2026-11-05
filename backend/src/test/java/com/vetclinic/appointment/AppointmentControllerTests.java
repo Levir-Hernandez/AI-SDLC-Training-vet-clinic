@@ -123,6 +123,29 @@ class AppointmentControllerTests {
 	}
 
 	@Test
+	void ownerCancelsWithReason() throws Exception {
+		when(actions.cancel(any(), any(), any())).thenReturn(response());
+
+		mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"reason\":\"Pet is ill\"}").header("Authorization", "Bearer " + TestJwt.owner(1L)))
+			.andExpect(status().isOk());
+	}
+
+	@Test
+	void cancelWithoutReasonIsBadRequest() throws Exception {
+		mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"reason\":\"\"}").header("Authorization", "Bearer " + TestJwt.owner(1L)))
+			.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void veterinarianCannotCancel() throws Exception {
+		mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"reason\":\"x\"}").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
 	void listIsPaginated() throws Exception {
 		when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(response()), 0, 20, 1));
 
