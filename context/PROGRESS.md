@@ -162,3 +162,120 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [backend/src/main/java/com/vetclinic/{shared/error/*,shared/PageResponse,config/ClockConfig,auth/{Role,UserAccount,UserAccountRepository},catalog/{ServiceCode,ClinicService,ClinicServiceRepository},veterinarian/{ScheduleBlock,Veterinarian,VeterinarianRepository,ScheduleValidator},owner/{Species,Breed,Owner,Pet,OwnerRepository,PetRepository},appointment/{AppointmentStatus,AppointmentAction,Actor,Appointment,AppointmentRepository,TransitionContext,AppointmentLifecycle},payment/{Payment,PaymentRepository}}, backend/src/test/java/com/vetclinic/{appointment/{AppointmentLifecycleTests,AppointmentRepositoryTests},veterinarian/ScheduleValidatorTests,owner/BreedTests}]
+
+## [2026-11-04 22:59] — Increment — I2 attempt 1
+- agent: implementation
+- increment: I2
+- attempt: 1
+- summary: Registration use cases for veterinarians, owners and pets with owner data scoping, plus account and catalog services.
+- files_created: [CurrentUser, PasswordConfig, AccountService, CatalogService, ServiceResponse, VeterinarianService, CreateVeterinarianRequest, ScheduleBlockDto, VeterinarianResponse, OwnerService, PetService, CreateOwnerRequest, OwnerResponse, CreatePetRequest, PetResponse, VeterinarianServiceTests, OwnerServiceTests, PetServiceTests]
+- files_modified: [OwnerRepository, PetRepository]
+- interfaces_created: [AccountService.create, CatalogService.list/require, VeterinarianService.create/list/get/require, OwnerService.create/list/get, PetService.add/listFor/requireAccessible, OwnerRepository.search, PetRepository.findByOwnerId(Pageable)]
+- decisions: [owner username is phone (A1), PetService.add has an Owner overload used by OwnerService, vet requireAccessible is 403]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added registration services for veterinarians, owners and pets with unit tests.
+
+## [2026-11-04 22:59] — Increment — I2 attempt 1
+- agent: implementation
+- increment: I2
+- attempt: 1
+- summary: Registration services for vets, owners and pets with data scoping and unit tests.
+- files_created: [CurrentUser, PasswordConfig, AccountService, CatalogService, ServiceResponse, VeterinarianService, CreateVeterinarianRequest, ScheduleBlockDto, VeterinarianResponse, OwnerService, PetService, CreateOwnerRequest, OwnerResponse, CreatePetRequest, PetResponse, VeterinarianServiceTests, OwnerServiceTests, PetServiceTests]
+- files_modified: [OwnerRepository, PetRepository]
+- interfaces_created: [OwnerRepository.search, PetRepository.findByOwnerId(Pageable), VeterinarianService.create/list/get/require, OwnerService.create/list/get, PetService.add/listFor/requireAccessible]
+- decisions: [OwnerService.list returns owners with null pets, PetService.add overload takes Owner for same-transaction creation, owner phone pattern 7-20 digits/symbols]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added registration services for veterinarians, owners and pets.
+
+## [2026-11-04 23:15] — CodeReview — I2 attempt 1
+- agent: code-review
+- increment: I2
+- attempt: 1
+- summary: Registration services correctly implement all rules, DTOs have proper validation, tests cover business cases and owner scoping, all exception codes match spec.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/{auth/{CurrentUser,AccountService},config/PasswordConfig,catalog/CatalogService,catalog/dto/ServiceResponse,veterinarian/{VeterinarianService,ScheduleValidator},veterinarian/dto/{CreateVeterinarianRequest,ScheduleBlockDto,VeterinarianResponse},owner/{OwnerService,PetService,Pet,Breed},owner/dto/{CreateOwnerRequest,OwnerResponse,CreatePetRequest,PetResponse},owner/{OwnerRepository,PetRepository}}, backend/src/test/java/com/vetclinic/{veterinarian/VeterinarianServiceTests,owner/{OwnerServiceTests,PetServiceTests}}]
+
+## [2026-11-04 23:02] — TestRun — I2 attempt 1
+- agent: test-runner
+- increment: I2
+- attempt: 1
+- mode: increment
+- summary: backend verify passed (154 tests); frontend lint passed; frontend build failed (ENOENT file system error, not SecurityFatalError); no test suite
+- result: FAIL
+- tests: 154 passed / 0 failed
+- coverage: missing jacoco.csv; run ./mvnw verify with the JaCoCo plugin configured, missing
+- failures: [frontend build: ENOENT: no such file or directory, open '.next/static/_pzZBrlAYVGTEFycANI7j_ssgManifest.js' on first run; same error on retry]
+
+## [2026-11-04 23:02] — TestRun — I2 attempt 1
+- agent: test-runner
+- increment: I2
+- attempt: 1
+- mode: increment
+- summary: Backend verify: 154 passed; frontend lint: pass; frontend build: pass (security notice, retried); no test suite
+- result: PASS
+- tests: 154 passed / 0 failed
+- coverage: missing jacoco.csv; run ./mvnw verify with the JaCoCo plugin configured, missing
+- failures: none
+
+## [2026-11-04 23:04] — CodeReview — I2 attempt 1
+- agent: code-review
+- increment: I2
+- attempt: 1
+- summary: Password fields missing @NotNull validation; null would cause BCrypt encoder failure.
+- result: FAIL
+- critical_high: [backend/src/main/java/com/vetclinic/veterinarian/dto/CreateVeterinarianRequest.java:15 password missing @NotNull, backend/src/main/java/com/vetclinic/owner/dto/CreateOwnerRequest.java:12 password missing @NotNull]
+- medium_findings: none
+- files_reviewed: [AccountService, CreateVeterinarianRequest, CreateOwnerRequest, OwnerService, PetService, VeterinarianService, OwnerRepository, PetRepository, VeterinarianServiceTests, OwnerServiceTests, PetServiceTests]
+
+## [2026-11-04 23:05] — Refactor — I2 attempt 2
+- agent: refactor
+- increment: I2
+- attempt: 2
+- summary: Added @NotNull to the password field of the veterinarian and owner create requests so a null password gives a 400 instead of a 500.
+- files_modified: [CreateVeterinarianRequest, CreateOwnerRequest]
+- decisions: [no new test added, tests not run per gate-fix rules]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+## [2026-11-04 23:07] — TestRun — I2 attempt 1
+- agent: test-runner
+- increment: I2
+- summary: Backend 154 passed, lint pass, build pass (security notice, retried)
+- attempt: 1
+- mode: increment
+- result: PASS
+- tests: 154 passed / 0 failed
+- coverage: missing jacoco.csv, missing branch
+- failures: none
+
+## [2026-11-04 23:07] — TestRun — I2 attempt 2
+- agent: test-runner
+- increment: I2
+- attempt: 2
+- mode: increment
+- summary: backend verify 154 passed, frontend lint pass, frontend build pass (security notice, retried)
+- result: PASS
+- tests: 154 passed / 0 failed
+- coverage: missing jacoco.csv; run ./mvnw verify with the JaCoCo plugin configured
+- failures: none
+
+## [2026-11-04 23:10] — CodeReview — I2 attempt 2
+- agent: code-review
+- increment: I2
+- attempt: 2
+- summary: @NotNull password fixes verified; all services, DTOs, tests correctly implement I2 requirements; 154 tests pass; frontend lint passes.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/{auth/{CurrentUser,AccountService},config/PasswordConfig,catalog/CatalogService,catalog/dto/ServiceResponse,veterinarian/{VeterinarianService,ScheduleValidator},veterinarian/dto/{CreateVeterinarianRequest,ScheduleBlockDto,VeterinarianResponse},owner/{OwnerService,PetService,Pet,Owner,Breed,Species},owner/dto/{CreateOwnerRequest,OwnerResponse,CreatePetRequest,PetResponse},owner/{OwnerRepository,PetRepository}}, backend/src/test/java/com/vetclinic/{veterinarian/VeterinarianServiceTests,owner/{OwnerServiceTests,PetServiceTests}}]
