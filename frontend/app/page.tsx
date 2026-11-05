@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 const LANDING_READY: Record<string, string | null> = {
   RECEPTIONIST: null, // "/reception/appointments"
   OWNER: "/owner/appointments",
-  VETERINARIAN: null, // "/vet/appointments"
+  VETERINARIAN: "/vet/appointments",
 };
 
 export const instant = false;

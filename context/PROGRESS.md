@@ -840,3 +840,40 @@
 - tests: 277 passed / 0 failed
 - coverage: 95.7% lines, 86.0% branches
 - failures: none
+
+## [2026-11-05 00:56] — Increment — I10 attempt 1
+- agent: implementation
+- increment: I10
+- attempt: 1
+- summary: Vets and reception can start, finish and edit observations; vets get a My appointments page.
+- files_created: [app/vet/layout.tsx, app/vet/appointments/page.tsx, components/ObservationsEditor.tsx]
+- files_modified: [AppointmentController, GlobalExceptionHandler, AppointmentControllerTests, actions/appointments.ts, AppointmentActions.tsx, appointments/[id]/page.tsx, app/page.tsx]
+- interfaces_created: [POST /api/appointments/{id}/start, POST /{id}/finish, PATCH /{id}/observations, startAppointment, finishAppointment, saveObservations]
+- decisions: [status param already existed in list; unknown status mapped to VALIDATION_FAILED in the handler only for param named status; AppHeader vet nav already existed; vet list paginated size 10]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added visit start, finish and observation editing for veterinarians and reception, and a veterinarian appointments page.
+
+## [2026-11-05 00:58] — TestRun — I10 attempt 1
+- agent: test-runner
+- increment: I10
+- attempt: 1
+- mode: increment
+- summary: Backend verify passed (285 tests), frontend lint passed, frontend build passed (security notice, retried)
+- result: PASS
+- tests: 285 passed / 0 failed
+- coverage: 95.8% lines, 85.8% branches
+- failures: none
+
+## [2026-11-05 01:32] — CodeReview — I10 attempt 1
+- agent: code-review
+- increment: I10
+- attempt: 1
+- summary: Visit endpoints (start, finish, observations) and vet appointments page. All required tests present and passing; proper authorization, scoping and validation. Status param validation enhanced.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/main/java/com/vetclinic/shared/error/GlobalExceptionHandler.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, frontend/app/vet/layout.tsx, frontend/app/vet/appointments/page.tsx, frontend/components/ObservationsEditor.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/app/appointments/[id]/page.tsx, frontend/app/page.tsx, frontend/lib/api.ts, frontend/lib/auth.ts]

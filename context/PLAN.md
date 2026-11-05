@@ -910,7 +910,7 @@ Frontend:
 
 ### I10 — Visit: start, finish and observations
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Veterinarians see their assigned appointments and, like reception, start and finish them and edit observations until closed or cancelled.
 - **Covers:** Flow "Visit" (UI + API); Roles (Veterinarian); lifecycle rows Scheduled→In progress, In progress→Finished (veterinarian, reception); rule "observations can be edited until closed or cancelled".
 - **Depends on:** I9

@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { ErrorMessage } from "@/components/ErrorMessage";
+import { ObservationsEditor } from "@/components/ObservationsEditor";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError, apiGet } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
@@ -71,7 +72,11 @@ export default async function AppointmentDetailPage({
       </dl>
       <section className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold">Observations</h2>
-        <p className="text-sm">{a.observations ?? "No observations recorded."}</p>
+        {a.allowedActions.includes("EDIT_OBSERVATIONS") ? (
+          <ObservationsEditor appointmentId={a.id} initial={a.observations} />
+        ) : (
+          <p className="text-sm">{a.observations ?? "No observations recorded."}</p>
+        )}
       </section>
       <AppointmentActions appointmentId={a.id} allowedActions={a.allowedActions} />
     </main>

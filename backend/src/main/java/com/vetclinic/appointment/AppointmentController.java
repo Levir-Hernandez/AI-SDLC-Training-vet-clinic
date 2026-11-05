@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +22,7 @@ import com.vetclinic.appointment.dto.AppointmentFilter;
 import com.vetclinic.appointment.dto.AppointmentResponse;
 import com.vetclinic.appointment.dto.CancelRequest;
 import com.vetclinic.appointment.dto.CreateAppointmentRequest;
+import com.vetclinic.appointment.dto.ObservationsRequest;
 import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
 
@@ -61,6 +63,25 @@ public class AppointmentController {
 	public AppointmentResponse cancel(@PathVariable Long id, @Valid @RequestBody CancelRequest request,
 			Authentication authentication) {
 		return actions.cancel(CurrentUser.from(authentication), id, request.reason());
+	}
+
+	@PostMapping("/{id}/start")
+	@PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
+	public AppointmentResponse start(@PathVariable Long id, Authentication authentication) {
+		return actions.start(CurrentUser.from(authentication), id);
+	}
+
+	@PostMapping("/{id}/finish")
+	@PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
+	public AppointmentResponse finish(@PathVariable Long id, Authentication authentication) {
+		return actions.finish(CurrentUser.from(authentication), id);
+	}
+
+	@PatchMapping("/{id}/observations")
+	@PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
+	public AppointmentResponse observations(@PathVariable Long id, @Valid @RequestBody ObservationsRequest request,
+			Authentication authentication) {
+		return actions.updateObservations(CurrentUser.from(authentication), id, request.observations());
 	}
 
 	@GetMapping

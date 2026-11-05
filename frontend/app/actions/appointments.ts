@@ -1,6 +1,6 @@
 "use server";
 
-import { ApiError, apiGet, apiPost } from "@/lib/api";
+import { ApiError, apiGet, apiPatch, apiPost } from "@/lib/api";
 import type {
   Appointment,
   CreateAppointmentRequest,
@@ -59,6 +59,53 @@ export async function cancelAppointment(id: number, reason: string): Promise<Can
       }
     }
     return { ok: false, error: "Could not cancel the appointment. Try again later." };
+  }
+}
+
+export interface SimpleResult {
+  ok: boolean;
+  error?: string;
+}
+
+async function visitAction(id: number, path: "start" | "finish"): Promise<SimpleResult> {
+  try {
+    await apiPost<Appointment>(`/api/appointments/${id}/${path}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ApiError && [403, 404, 409].includes(error.status)) {
+      return { ok: false, error: error.message };
+    }
+    return { ok: false, error: "Could not update the appointment. Try again later." };
+  }
+}
+
+export async function startAppointment(id: number): Promise<SimpleResult> {
+  return visitAction(id, "start");
+}
+
+export async function finishAppointment(id: number): Promise<SimpleResult> {
+  return visitAction(id, "finish");
+}
+
+export interface ObservationsState {
+  saved?: boolean;
+  error?: string;
+}
+
+export async function saveObservations(
+  _prev: ObservationsState,
+  formData: FormData,
+): Promise<ObservationsState> {
+  const id = Number(formData.get("id"));
+  const observations = String(formData.get("observations") ?? "");
+  try {
+    await apiPatch<Appointment>(`/api/appointments/${id}/observations`, { observations });
+    return { saved: true };
+  } catch (error) {
+    if (error instanceof ApiError && [400, 403, 404, 409].includes(error.status)) {
+      return { error: error.message };
+    }
+    return { error: "Could not save the observations. Try again later." };
   }
 }
 

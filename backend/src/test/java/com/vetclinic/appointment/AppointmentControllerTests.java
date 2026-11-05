@@ -3,6 +3,7 @@ package com.vetclinic.appointment;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -155,7 +156,78 @@ class AppointmentControllerTests {
 	}
 
 	@Test
-	void detailReturnsAllowedActions() throws Exception {
+	void veterinarianStartReturnsOk() throws Exception {
+		when(actions.start(any(), any())).thenReturn(response());
+
+		mockMvc.perform(post("/api/appointments/5/start").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isOk());
+	}
+
+	@Test
+	void veterinarianFinishReturnsOk() throws Exception {
+		when(actions.finish(any(), any())).thenReturn(response());
+
+		mockMvc.perform(post("/api/appointments/5/finish").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isOk());
+	}
+
+	@Test
+	void ownerCannotStart() throws Exception {
+		mockMvc.perform(post("/api/appointments/5/start").header("Authorization", "Bearer " + TestJwt.owner(1L)))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void observationsPatchReturnsOk() throws Exception {
+		when(actions.updateObservations(any(), any(), any())).thenReturn(response());
+
+		mockMvc.perform(patch("/api/appointments/5/observations").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"observations\":\"ok\"}").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isOk());
+	}
+
+	@Test
+	void observationsTooLongIsBadRequest() throws Exception {
+		String text = "a".repeat(2001);
+		mockMvc.perform(patch("/api/appointments/5/observations").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"observations\":\"" + text + "\"}").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void lockedObservationsAreConflict() throws Exception {
+		when(actions.updateObservations(any(), any(), any()))
+			.thenThrow(new ConflictException("OBSERVATIONS_LOCKED", "locked"));
+
+		mockMvc.perform(patch("/api/appointments/5/observations").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"observations\":\"x\"}").header("Authorization", "Bearer " + TestJwt.receptionist()))
+			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.code").value("OBSERVATIONS_LOCKED"));
+	}
+
+	@Test
+	void statusListReachesServiceAsSet() throws Exception {
+		when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(), 0, 20, 0));
+
+		mockMvc.perform(get("/api/appointments?status=SCHEDULED,IN_PROGRESS")
+			.header("Authorization", "Bearer " + TestJwt.veterinarian(1L))).andExpect(status().isOk());
+
+		org.mockito.ArgumentCaptor<com.vetclinic.appointment.dto.AppointmentFilter> captor = org.mockito.ArgumentCaptor
+			.forClass(com.vetclinic.appointment.dto.AppointmentFilter.class);
+		org.mockito.Mockito.verify(queries).list(any(), captor.capture(), any());
+		org.assertj.core.api.Assertions.assertThat(captor.getValue().statuses())
+			.containsExactlyInAnyOrder(AppointmentStatus.SCHEDULED, AppointmentStatus.IN_PROGRESS);
+	}
+
+	@Test
+	void unknownStatusIsValidationFailed() throws Exception {
+		mockMvc.perform(get("/api/appointments?status=FOO").header("Authorization", "Bearer " + TestJwt.receptionist()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+	}
+
+	@Test
+	void detailReturnsAllowedActions()throws Exception {
 		when(queries.get(any(), any())).thenReturn(response());
 
 		mockMvc.perform(get("/api/appointments/5").header("Authorization", "Bearer " + TestJwt.receptionist()))

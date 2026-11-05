@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { cancelAppointment, confirmAppointment } from "@/app/actions/appointments";
+import {
+  cancelAppointment,
+  confirmAppointment,
+  finishAppointment,
+  startAppointment,
+} from "@/app/actions/appointments";
 import { CancelDialog } from "@/components/CancelDialog";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import type { AppointmentAction } from "@/lib/types";
@@ -48,6 +53,19 @@ export function AppointmentActions({
         else setError(result.error);
       });
     };
+    for (const [action, run] of [
+      ["START", startAppointment],
+      ["FINISH", finishAppointment],
+    ] as const) {
+      all[action] = () => {
+        setError(undefined);
+        startTransition(async () => {
+          const result = await run(appointmentId);
+          if (result.ok) router.refresh();
+          else setError(result.error);
+        });
+      };
+    }
     all.CANCEL = () => {
       setError(undefined);
       setCancelError(undefined);

@@ -48,6 +48,10 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler({ MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class,
 			HttpMessageNotReadableException.class })
 	ResponseEntity<ProblemDetail> badRequest(Exception ex) {
+		// An unknown value of the appointment list "status" filter is a validation failure.
+		if (ex instanceof MethodArgumentTypeMismatchException m && "status".equals(m.getName())) {
+			return problem(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Unknown status value", null);
+		}
 		return problem(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "Malformed or missing request data", null);
 	}
 
