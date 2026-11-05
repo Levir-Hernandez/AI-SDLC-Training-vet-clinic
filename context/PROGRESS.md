@@ -114,3 +114,51 @@
 
 ### Added
 - Added a fifth plan review that confirmed the veterinarian list and allowed-actions test fixes, and flagged a weak pet history slice test and a reservation TTL override that may not take effect in the manual expiry check.
+
+## [2026-11-04 22:51] — Increment — I1 attempt 1
+- agent: implementation
+- increment: I1
+- attempt: 1
+- summary: Domain entities, repositories, ScheduleValidator and the centralized AppointmentLifecycle with tests.
+- files_created: [DomainException, NotFoundException, ConflictException, ForbiddenException, BadRequestException, PageResponse, ClockConfig, Role, UserAccount, UserAccountRepository, ServiceCode, ClinicService, ClinicServiceRepository, ScheduleBlock, Veterinarian, VeterinarianRepository, ScheduleValidator, Species, Breed, Owner, Pet, OwnerRepository, PetRepository, AppointmentStatus, AppointmentAction, Actor, TransitionContext, Appointment, AppointmentRepository, AppointmentLifecycle, Payment, PaymentRepository, AppointmentLifecycleTests, AppointmentRepositoryTests, ScheduleValidatorTests, BreedTests]
+- files_modified: []
+- interfaces_created: [AppointmentLifecycle.apply, AppointmentLifecycle.allowedActions, AppointmentLifecycle.canEditObservations, AppointmentRepository.existsOverlap, AppointmentRepository.findBlocking, VeterinarianRepository.findLockedById, ScheduleValidator.validate]
+- decisions: [Appointment constructor also takes createdAt; RESCHEDULED treated as non-editable and final; Pet mismatch message uses enum names]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added the core domain model, repositories and the appointment lifecycle transition table.
+
+## [2026-11-04 23:15] — CodeReview — I1 attempt 1
+- agent: code-review
+- increment: I1
+- attempt: 1
+- summary: Core domain model with all entities, repositories, enums, ScheduleValidator, and centralized AppointmentLifecycle implementing the full TASK.md transition table. All rules enforced correctly with comprehensive test coverage.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- low_findings: none
+- files_reviewed: [Appointment, AppointmentLifecycle, AppointmentRepository, AppointmentStatus, AppointmentAction, Actor, TransitionContext, Pet, Breed, Owner, Species, Veterinarian, ScheduleBlock, ScheduleValidator, ClinicService, UserAccount, Role, Payment, DomainException and subclasses, PageResponse, ClockConfig, AppointmentLifecycleTests, AppointmentRepositoryTests, ScheduleValidatorTests, BreedTests]
+
+## [2026-11-04 22:57] — TestRun — I1 attempt 1
+- agent: test-runner
+- increment: I1
+- attempt: 1
+- mode: increment
+- summary: All increment I1 automated commands passed. Backend verify: 141 tests passed. Frontend lint: pass. Frontend build: pass (security notice, retried).
+- result: PASS
+- tests: 141 passed / 0 failed
+- coverage: missing jacoco.csv
+- failures: none
+
+## [2026-11-04 22:57] — CodeReview — I1 attempt 1
+- agent: code-review
+- increment: I1
+- attempt: 1
+- summary: All 35 backend files (entities, repositories, lifecycle, tests) present and correct; 11 transition rules enforced with proper role/error handling; 141 tests passing; lifecycle owns all status changes; breed-species and overlap invariants validated; frontend unaffected.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/{shared/error/*,shared/PageResponse,config/ClockConfig,auth/{Role,UserAccount,UserAccountRepository},catalog/{ServiceCode,ClinicService,ClinicServiceRepository},veterinarian/{ScheduleBlock,Veterinarian,VeterinarianRepository,ScheduleValidator},owner/{Species,Breed,Owner,Pet,OwnerRepository,PetRepository},appointment/{AppointmentStatus,AppointmentAction,Actor,Appointment,AppointmentRepository,TransitionContext,AppointmentLifecycle},payment/{Payment,PaymentRepository}}, backend/src/test/java/com/vetclinic/{appointment/{AppointmentLifecycleTests,AppointmentRepositoryTests},veterinarian/ScheduleValidatorTests,owner/BreedTests}]
