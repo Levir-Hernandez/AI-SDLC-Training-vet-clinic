@@ -78,6 +78,12 @@ public class AppointmentController {
 		return actions.finish(CurrentUser.from(authentication), id);
 	}
 
+	@PostMapping("/{id}/close")
+	@PreAuthorize("hasRole('RECEPTIONIST')")
+	public AppointmentResponse close(@PathVariable Long id, Authentication authentication) {
+		return actions.close(CurrentUser.from(authentication), id);
+	}
+
 	@PostMapping("/{id}/reschedule")
 	@PreAuthorize("hasRole('RECEPTIONIST')")
 	public ResponseEntity<AppointmentResponse> reschedule(@PathVariable Long id,

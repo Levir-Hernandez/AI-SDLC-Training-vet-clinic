@@ -98,10 +98,15 @@ export default async function ReceptionAppointmentsPage({
                     <td className="py-2 pr-4">{a.service.name}</td>
                     <td className="py-2 pr-4">{a.veterinarian.name}</td>
                     <td className="py-2 pr-4">
-                      <StatusBadge status={a.status} />
+                      <StatusBadge status={a.status} debt={a.debt} />
                     </td>
                     <td className="py-2">
-                      <AppointmentActions appointmentId={a.id} allowedActions={a.allowedActions} />
+                      <AppointmentActions
+                        appointmentId={a.id}
+                        allowedActions={a.allowedActions}
+                        total={a.total}
+                        status={a.status}
+                      />
                     </td>
                   </tr>
                 ))}

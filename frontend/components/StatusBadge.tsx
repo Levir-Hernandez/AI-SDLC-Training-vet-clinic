@@ -11,8 +11,11 @@ const STYLES: Record<AppointmentStatus, { label: string; className: string }> = 
   CANCELLED: { label: "Cancelled", className: "bg-red-100 text-red-900" },
 };
 
-export function StatusBadge({ status }: { status: AppointmentStatus }) {
-  const s = STYLES[status];
+export function StatusBadge({ status, debt = false }: { status: AppointmentStatus; debt?: boolean }) {
+  const s =
+    status === "CLOSED" && debt
+      ? { label: "Debt", className: "bg-orange-100 text-orange-900" }
+      : STYLES[status];
   return (
     <span
       role="status"

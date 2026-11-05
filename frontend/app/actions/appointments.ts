@@ -67,7 +67,7 @@ export interface SimpleResult {
   error?: string;
 }
 
-async function visitAction(id: number, path: "start" | "finish"): Promise<SimpleResult> {
+async function visitAction(id: number, path: "start" | "finish" | "close"): Promise<SimpleResult> {
   try {
     await apiPost<Appointment>(`/api/appointments/${id}/${path}`);
     return { ok: true };
@@ -85,6 +85,28 @@ export async function startAppointment(id: number): Promise<SimpleResult> {
 
 export async function finishAppointment(id: number): Promise<SimpleResult> {
   return visitAction(id, "finish");
+}
+
+export async function closeAppointment(id: number): Promise<SimpleResult> {
+  return visitAction(id, "close");
+}
+
+export async function payAppointment(id: number, amount: string): Promise<SimpleResult> {
+  try {
+    await apiPost(`/api/appointments/${id}/payments`, { amount });
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 409 && error.code === "AMOUNT_MISMATCH") {
+        return { ok: false, error: "The amount must equal the appointment total exactly." };
+      }
+      if (error.status === 409 && error.code === "ALREADY_PAID") {
+        return { ok: false, error: "This appointment has already been paid." };
+      }
+      if ([400, 403, 404, 409].includes(error.status)) return { ok: false, error: error.message };
+    }
+    return { ok: false, error: "Could not record the payment. Try again later." };
+  }
 }
 
 export interface RescheduleResult {

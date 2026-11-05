@@ -61,7 +61,7 @@ export default async function AppointmentDetailPage({
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-8">
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-semibold">Appointment #{a.id}</h1>
-        <StatusBadge status={a.status} />
+        <StatusBadge status={a.status} debt={a.debt} />
       </div>
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
         {rows.map(([label, value]) => (
@@ -93,7 +93,12 @@ export default async function AppointmentDetailPage({
           <p className="text-sm">{a.observations ?? "No observations recorded."}</p>
         )}
       </section>
-      <AppointmentActions appointmentId={a.id} allowedActions={a.allowedActions} />
+      <AppointmentActions
+        appointmentId={a.id}
+        allowedActions={a.allowedActions}
+        total={a.total}
+        status={a.status}
+      />
     </main>
   );
 }

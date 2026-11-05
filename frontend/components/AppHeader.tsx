@@ -6,6 +6,7 @@ const NAV: Record<Role, { href: string; label: string }[]> = {
   RECEPTIONIST: [
     { href: "/reception/appointments", label: "Appointments" },
     { href: "/reception/book", label: "Book walk-in" },
+    { href: "/reception/debts", label: "Debts" },
     { href: "/reception/owners", label: "Owners" },
     { href: "/reception/veterinarians", label: "Veterinarians" },
   ],

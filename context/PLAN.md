@@ -1131,7 +1131,7 @@ Frontend:
 
 ### I13 — Payments, closing and debts
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception records one exact payment on a finished appointment, closes paid appointments, or closes finished unpaid ones as debts listed on a debts screen.
 - **Covers:** Flow "Pay and close" (UI + API); lifecycle rows Finished→Paid, Finished→Closed (debt), Paid→Closed; rule "Closed is final"; acceptance "payment accepted only for a finished appointment and only for its exact total; second payment rejected", "finished appointment closed without payment appears as a debt", "reception sees all ongoing appointments with cancel and payment actions" (payment part).
 - **Depends on:** I12
@@ -1143,24 +1143,24 @@ Frontend:
   - `backend/src/main/java/com/vetclinic/payment/PaymentController.java`: `POST /api/appointments/{id}/payments`.
   - `backend/src/test/java/com/vetclinic/payment/PaymentControllerTests.java`, `PaymentFlowIntegrationTests.java`.
 - **Modify:**
-  - `backend/src/main/java/com/vetclinic/appointment/AppointmentController.java`: `POST /{id}/close`; bind `debt` query param.
-  - `backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java`: close and debt cases.
+  - `backend/src/main/java/com/vetclinic/appointment/AppointmentController.java`: add `POST /{id}/close` only (the `debt` query param is already bound into `AppointmentFilter`, and `AppointmentQueryService` already filters debt and sets `AppointmentResponse.debt`).
+  - `backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java`: close and debt-binding cases.
 
 **Frontend**
 - **Create:**
   - `frontend/components/PaymentDialog.tsx`: confirm dialog showing the total, amount prefilled and editable, submit.
   - `frontend/app/reception/debts/page.tsx`: paginated debts list.
 - **Modify:**
-  - `frontend/app/actions/appointments.ts`: `payAppointment(id, amount)`, `closeAppointment(id)`.
-  - `frontend/components/AppointmentActions.tsx`: wire `PAY` (dialog) and `CLOSE` (confirm; label "Close unpaid (debt)" on Finished, "Close" on Paid).
-  - `frontend/components/StatusBadge.tsx`: "Debt" badge variant for closed unpaid.
-  - `frontend/components/AppHeader.tsx`: receptionist "Debts".
+  - `frontend/app/actions/appointments.ts`: add `payAppointment(id, amount)`, `closeAppointment(id)`.
+  - `frontend/components/AppointmentActions.tsx`: it wires CONFIRM/CANCEL/START/FINISH/RESCHEDULE itself from `appointmentId`; add `PAY` (opens PaymentDialog) and `CLOSE` (confirm; label "Close unpaid (debt)" when the appointment is Finished, "Close" when Paid). `LABELS` already has PAY/CLOSE; the component needs the total and status (new optional props, passed by the board and detail pages).
+  - `frontend/components/StatusBadge.tsx`: "Debt" variant for CLOSED with `debt: true` (currently only a plain CLOSED label).
+  - `frontend/components/AppHeader.tsx`: receptionist "Debts" link.
 
 #### Implementation Tasks
 
 **Backend**
-1. `PaymentController`: receptionist only, `@Valid PaymentRequest` → `PaymentService.pay` → 201.
-2. `AppointmentController`: `POST /{id}/close` receptionist → `AppointmentActionService.close`; `debt` param into `AppointmentFilter`.
+1. `PaymentController`: receptionist only, `@Valid PaymentRequest` → existing `PaymentService.pay(CurrentUser, Long appointmentId, PaymentRequest)` → 201 `PaymentResponse`.
+2. `AppointmentController`: `POST /{id}/close` receptionist → existing `AppointmentActionService.close(CurrentUser, Long)`.
 
 **Frontend**
 1. `PaymentDialog`: amount mirrors backend; shows `AMOUNT_MISMATCH`/`ALREADY_PAID` messages.
@@ -1170,9 +1170,9 @@ Frontend:
 #### Expected Interfaces and Outputs
 
 **Backend**
-- `POST /api/appointments/{id}/payments` `{amount:"60.00"}` on FINISHED total 60.00 → `201 {id, appointmentId, amount:"60.00", paidAt}`, appointment PAID; `59.99` or `60.01` → `409 AMOUNT_MISMATCH`; on SCHEDULED → `409 INVALID_TRANSITION`; second payment → `409 ALREADY_PAID`; owner → `403`.
+- `POST /api/appointments/{id}/payments` `{amount:"60.00"}` on FINISHED total 60.00 → `201 PaymentResponse {id, appointmentId, amount, paidAt, ...}`, appointment PAID; `59.99` or `60.01` → `409 AMOUNT_MISMATCH`; on SCHEDULED → `409 INVALID_TRANSITION`; second payment → `409 ALREADY_PAID`; owner → `403`.
 - `POST /{id}/close` on PAID → `200 CLOSED, debt:false`; on FINISHED → `200 CLOSED, debt:true`; on CLOSED → `409`.
-- `GET /api/appointments?debt=true` → only closed unpaid.
+- `GET /api/appointments?debt=true` → only closed unpaid (already implemented).
 
 **Frontend**
 - Board shows Pay on Finished; after payment, Close; Close unpaid on Finished → appears under `/reception/debts` with a Debt badge.
@@ -1185,7 +1185,7 @@ The tests prove the payment and close endpoint contract and the full pay/close/d
   - **Success:** receptionist → 201.
   - **Rejections:** missing amount → 400; negative → 400; owner/vet → 403.
 - `AppointmentControllerTests` (slice, added cases)
-  - **Success:** close → 200; `debt=true` bound into the filter.
+  - **Success:** close → 200; `debt=true` reaches the filter.
   - **Rejections:** vet close → 403.
 - `PaymentFlowIntegrationTests` (integration)
   - **Success:** walk-in → start → finish → pay → close → CLOSED, not debt.
@@ -1410,3 +1410,4 @@ Frontend:
 | Date | Mode | Increments | Change |
 |---|---|---|---|
 | 2026-11-05 | Mode 2 | I12 | Added SlotPicker service-lock props (SlotPicker had no preset); RESCHEDULE wired in AppointmentActions via router.push; noted existing service/DTO signatures. |
+| 2026-11-05 | Mode 2 | I13 | debt param, PaymentService, close service and debt response already exist; I13 limited to controllers, UI wiring needing total/status props |

@@ -276,6 +276,33 @@ class AppointmentControllerTests {
 	}
 
 	@Test
+	void receptionistClosesAppointment() throws Exception {
+		when(actions.close(any(), any())).thenReturn(response());
+
+		mockMvc.perform(post("/api/appointments/5/close").header("Authorization", "Bearer " + TestJwt.receptionist()))
+			.andExpect(status().isOk());
+	}
+
+	@Test
+	void veterinarianCannotClose() throws Exception {
+		mockMvc.perform(post("/api/appointments/5/close").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void debtFlagReachesService() throws Exception {
+		when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(), 0, 20, 0));
+
+		mockMvc.perform(get("/api/appointments?debt=true").header("Authorization", "Bearer " + TestJwt.receptionist()))
+			.andExpect(status().isOk());
+
+		org.mockito.ArgumentCaptor<com.vetclinic.appointment.dto.AppointmentFilter> captor = org.mockito.ArgumentCaptor
+			.forClass(com.vetclinic.appointment.dto.AppointmentFilter.class);
+		org.mockito.Mockito.verify(queries).list(any(), captor.capture(), any());
+		org.assertj.core.api.Assertions.assertThat(captor.getValue().debt()).isTrue();
+	}
+
+	@Test
 	void detailReturnsAllowedActions()throws Exception {
 		when(queries.get(any(), any())).thenReturn(response());
 

@@ -959,3 +959,48 @@
 - tests: 294 passed / 0 failed
 - coverage: 95.9% lines, 86.0% branches
 - failures: none
+
+## [2026-11-05 01:14] — Validation — before I13
+- agent: planner
+- increment: I13
+- trigger: deviations
+- rewritten: [I13]
+- result: updated
+- summary: I13 adjusted; debt filter, PaymentService, close service already exist, only controllers and UI remain.
+
+## [2026-11-05 01:16] — Increment — I13 attempt 1
+- agent: implementation
+- increment: I13
+- attempt: 1
+- summary: Reception can pay finished appointments exactly, close paid ones, close unpaid ones as debts, and view a debts screen.
+- files_created: [PaymentController, PaymentControllerTests, PaymentFlowIntegrationTests, PaymentDialog.tsx, app/reception/debts/page.tsx]
+- files_modified: [AppointmentController, AppointmentControllerTests, actions/appointments.ts, AppointmentActions.tsx, StatusBadge.tsx, AppHeader.tsx, reception/appointments/page.tsx, appointments/[id]/page.tsx]
+- interfaces_created: [POST /api/appointments/{id}/payments, POST /api/appointments/{id}/close, payAppointment, closeAppointment, PaymentDialog]
+- decisions: [close confirm uses window.confirm; PAY button shown only when total prop is passed]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added payments, closing and a debts screen for reception.
+
+## [2026-11-05 01:18] — TestRun — I13 attempt 1
+- agent: test-runner
+- increment: I13
+- attempt: 1
+- mode: increment
+- summary: Backend verify passed (306 tests), frontend lint passed, frontend build passed (security notice, retried)
+- result: PASS
+- tests: 306 passed / 0 failed
+- coverage: 96.0% lines, 86.0% branches
+- failures: none
+
+## [2026-11-05 01:22] — CodeReview — I13 attempt 1
+- agent: code-review
+- increment: I13
+- attempt: 1
+- summary: Payments, closing and debts increment implements POST /api/appointments/{id}/payments and POST /{id}/close endpoints, with PaymentDialog UI, debts listing page, and all required tests. All backend tests pass, frontend linting and build succeed.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/payment/PaymentController.java, backend/src/main/java/com/vetclinic/payment/PaymentService.java, backend/src/test/java/com/vetclinic/payment/PaymentControllerTests.java, backend/src/test/java/com/vetclinic/payment/PaymentFlowIntegrationTests.java, backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, frontend/components/PaymentDialog.tsx, frontend/app/reception/debts/page.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/components/StatusBadge.tsx, frontend/components/AppHeader.tsx]
