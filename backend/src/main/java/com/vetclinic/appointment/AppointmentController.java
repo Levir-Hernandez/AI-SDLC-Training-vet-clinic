@@ -32,7 +32,11 @@ public class AppointmentController {
 	private final BookingService booking;
 	private final AppointmentQueryService queries;
 
-	public AppointmentController(BookingService booking, AppointmentQueryService queries) {
+	private final AppointmentActionService actions;
+
+	public AppointmentController(BookingService booking, AppointmentQueryService queries,
+			AppointmentActionService actions) {
+		this.actions = actions;
 		this.booking = booking;
 		this.queries = queries;
 	}
@@ -43,6 +47,12 @@ public class AppointmentController {
 			Authentication authentication) {
 		AppointmentResponse created = booking.book(CurrentUser.from(authentication), request);
 		return ResponseEntity.created(URI.create("/api/appointments/" + created.id())).body(created);
+	}
+
+	@PostMapping("/{id}/confirm")
+	@PreAuthorize("hasAnyRole('OWNER','RECEPTIONIST')")
+	public AppointmentResponse confirm(@PathVariable Long id, Authentication authentication) {
+		return actions.confirm(CurrentUser.from(authentication), id);
 	}
 
 	@GetMapping

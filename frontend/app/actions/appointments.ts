@@ -13,6 +13,29 @@ export interface BookResult {
   id?: number;
   error?: string;
   slotLost?: boolean;
+  reservedUntil?: string | null;
+}
+
+export interface ConfirmResult {
+  ok: boolean;
+  error?: string;
+  expired?: boolean;
+}
+
+export async function confirmAppointment(id: number): Promise<ConfirmResult> {
+  try {
+    await apiPost<Appointment>(`/api/appointments/${id}/confirm`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 409 && error.code === "RESERVATION_EXPIRED") {
+        return { ok: false, expired: true, error: "Reservation expired, pick a slot again" };
+      }
+      if (error.status === 409) return { ok: false, error: error.message };
+      if (error.status === 404) return { ok: false, error: "Appointment not found." };
+    }
+    return { ok: false, error: "Could not confirm the appointment. Try again later." };
+  }
 }
 
 export async function bookAppointment(
@@ -20,7 +43,7 @@ export async function bookAppointment(
 ): Promise<BookResult> {
   try {
     const created = await apiPost<Appointment>("/api/appointments", request);
-    return { id: created.id };
+    return { id: created.id, reservedUntil: created.reservedUntil };
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 409 && ["SLOT_TAKEN", "SLOT_UNAVAILABLE"].includes(error.code)) {

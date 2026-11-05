@@ -73,7 +73,7 @@ export default async function AppointmentDetailPage({
         <h2 className="text-lg font-semibold">Observations</h2>
         <p className="text-sm">{a.observations ?? "No observations recorded."}</p>
       </section>
-      <AppointmentActions allowedActions={a.allowedActions} />
+      <AppointmentActions appointmentId={a.id} allowedActions={a.allowedActions} />
     </main>
   );
 }

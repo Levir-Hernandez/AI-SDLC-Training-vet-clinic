@@ -45,6 +45,9 @@ class AppointmentControllerTests {
 	@MockitoBean
 	private AppointmentQueryService queries;
 
+	@MockitoBean
+	private AppointmentActionService actions;
+
 	private AppointmentResponse response() {
 		LocalDateTime start = LocalDateTime.of(2030, 1, 7, 9, 0);
 		return new AppointmentResponse(5L, new AppointmentResponse.PetRef(1L, "Rex", Species.DOG, Breed.BULLDOG), "Ann",
@@ -93,6 +96,30 @@ class AppointmentControllerTests {
 	void missingTokenIsUnauthorized() throws Exception {
 		mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON).content(BODY))
 			.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void ownerConfirmsReservation() throws Exception {
+		when(actions.confirm(any(), any())).thenReturn(response());
+
+		mockMvc.perform(post("/api/appointments/5/confirm").header("Authorization", "Bearer " + TestJwt.owner(1L)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("SCHEDULED"));
+	}
+
+	@Test
+	void veterinarianCannotConfirm() throws Exception {
+		mockMvc.perform(post("/api/appointments/5/confirm").header("Authorization", "Bearer " + TestJwt.veterinarian(1L)))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void expiredReservationConfirmIsConflict() throws Exception {
+		when(actions.confirm(any(), any())).thenThrow(new ConflictException("RESERVATION_EXPIRED", "expired"));
+
+		mockMvc.perform(post("/api/appointments/5/confirm").header("Authorization", "Bearer " + TestJwt.owner(1L)))
+			.andExpect(status().isConflict())
+			.andExpect(jsonPath("$.code").value("RESERVATION_EXPIRED"));
 	}
 
 	@Test

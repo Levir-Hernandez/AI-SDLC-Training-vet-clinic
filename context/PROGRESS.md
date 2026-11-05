@@ -730,3 +730,40 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [GlobalExceptionHandler.java, WalkInBookingIntegrationTests.java, AvailabilityController.java, AppointmentController.java, AvailabilityControllerTests.java, AppointmentControllerTests.java, AvailabilityService.java, BookingService.java, AppointmentQueryService.java, StatusBadge.tsx, SlotPicker.tsx, AppointmentActions.tsx, availability.ts, appointments.ts, book/page.tsx, walk-in-form.tsx, appointments/[id]/page.tsx, lib/types.ts, AppHeader.tsx]
+
+## [2026-11-05 00:38] — Increment — I8 attempt 1
+- agent: implementation
+- increment: I8
+- attempt: 1
+- summary: Owners can reserve a slot online, confirm it before the TTL, and expired reservations are swept and free the slot.
+- files_created: [OnlineBookingIntegrationTests, owner/book/page.tsx, owner/book/online-booking-form.tsx]
+- files_modified: [AppointmentController, AppointmentControllerTests, actions/appointments.ts, AppointmentActions.tsx, AppHeader.tsx, appointments/[id]/page.tsx]
+- interfaces_created: [POST /api/appointments/{id}/confirm, confirmAppointment(id)]
+- decisions: [AppointmentActions takes optional appointmentId and wires CONFIRM itself via server action, detail page passes it; BookResult now returns reservedUntil for the countdown; integration test uses a @Primary MutableClock bean and its own owner account]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added online booking for owners: reserve a slot, confirm it with a countdown, and see expired reservations released.
+
+## [2026-11-05 00:42] — TestRun — I8 attempt 1
+- agent: test-runner
+- increment: I8
+- attempt: 1
+- mode: increment
+- summary: Backend verify passed with 270 tests; frontend lint and build (with security notice retry) passed
+- result: PASS
+- tests: 270 passed / 0 failed
+- coverage: 71.1% lines, 45.4% branches
+- failures: none
+
+## [2026-11-05 00:43] — CodeReview — I8 attempt 1
+- agent: code-review
+- increment: I8
+- attempt: 1
+- summary: Online booking reserve/confirm/expiry flow implemented end-to-end with proper authorization, lifecycle transitions, slot management and test coverage
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, backend/src/test/java/com/vetclinic/appointment/OnlineBookingIntegrationTests.java, frontend/app/owner/book/page.tsx, frontend/app/owner/book/online-booking-form.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/components/AppHeader.tsx, frontend/app/appointments/[id]/page.tsx]
