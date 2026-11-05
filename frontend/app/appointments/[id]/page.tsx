@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppointmentActions } from "@/components/AppointmentActions";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -70,6 +71,20 @@ export default async function AppointmentDetailPage({
           </div>
         ))}
       </dl>
+      {(a.rescheduledFromId != null || a.rescheduledToId != null) && (
+        <p className="flex gap-4 text-sm">
+          {a.rescheduledFromId != null && (
+            <Link href={`/appointments/${a.rescheduledFromId}`} className="underline">
+              Rescheduled from #{a.rescheduledFromId}
+            </Link>
+          )}
+          {a.rescheduledToId != null && (
+            <Link href={`/appointments/${a.rescheduledToId}`} className="underline">
+              Rescheduled to #{a.rescheduledToId}
+            </Link>
+          )}
+        </p>
+      )}
       <section className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold">Observations</h2>
         {a.allowedActions.includes("EDIT_OBSERVATIONS") ? (

@@ -23,6 +23,7 @@ import com.vetclinic.appointment.dto.AppointmentResponse;
 import com.vetclinic.appointment.dto.CancelRequest;
 import com.vetclinic.appointment.dto.CreateAppointmentRequest;
 import com.vetclinic.appointment.dto.ObservationsRequest;
+import com.vetclinic.appointment.dto.RescheduleRequest;
 import com.vetclinic.auth.CurrentUser;
 import com.vetclinic.shared.PageResponse;
 
@@ -75,6 +76,14 @@ public class AppointmentController {
 	@PreAuthorize("hasAnyRole('VETERINARIAN','RECEPTIONIST')")
 	public AppointmentResponse finish(@PathVariable Long id, Authentication authentication) {
 		return actions.finish(CurrentUser.from(authentication), id);
+	}
+
+	@PostMapping("/{id}/reschedule")
+	@PreAuthorize("hasRole('RECEPTIONIST')")
+	public ResponseEntity<AppointmentResponse> reschedule(@PathVariable Long id,
+			@Valid @RequestBody RescheduleRequest request, Authentication authentication) {
+		AppointmentResponse created = actions.reschedule(CurrentUser.from(authentication), id, request);
+		return ResponseEntity.created(URI.create("/api/appointments/" + created.id())).body(created);
 	}
 
 	@PatchMapping("/{id}/observations")

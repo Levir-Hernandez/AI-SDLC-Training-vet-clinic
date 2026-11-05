@@ -1055,7 +1055,7 @@ Frontend:
 
 ### I12 — Reschedule and reassign
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception moves a scheduled or in-progress appointment to another free time and/or veterinarian; the original becomes `RESCHEDULED` and a new linked `SCHEDULED` appointment is created.
 - **Covers:** Flow "Reschedule or reassign" (UI + API); lifecycle rows Scheduled→Rescheduled, In progress→Rescheduled (reception, new slot available); rule "Rescheduled is final"; acceptance "rescheduling or reassigning marks the original as rescheduled and creates a linked scheduled appointment".
 - **Depends on:** I11
@@ -1066,16 +1066,17 @@ Frontend:
 - **Create:**
   - `backend/src/test/java/com/vetclinic/appointment/RescheduleIntegrationTests.java`.
 - **Modify:**
-  - `backend/src/main/java/com/vetclinic/appointment/AppointmentController.java`: `POST /{id}/reschedule`.
+  - `backend/src/main/java/com/vetclinic/appointment/AppointmentController.java`: add `POST /{id}/reschedule` (the service method `AppointmentActionService.reschedule(CurrentUser, Long, RescheduleRequest)` and `RescheduleRequest(@NotNull Long veterinarianId, @NotNull LocalDateTime startAt)` already exist; `AppointmentResponse` already has `rescheduledFromId`/`rescheduledToId`).
   - `backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java`: reschedule cases.
 
 **Frontend**
 - **Create:**
-  - `frontend/app/appointments/[id]/reschedule/page.tsx` + `reschedule-form.tsx`: receptionist-only (`page.tsx` calls `requireRole("RECEPTIONIST")` server-side); `SlotPicker` preset with the appointment's service (service locked), vet selectable; Submit.
+  - `frontend/app/appointments/[id]/reschedule/page.tsx` + `reschedule-form.tsx`: receptionist-only (`page.tsx` calls `requireRole("RECEPTIONIST")` server-side); `SlotPicker` with the appointment's service locked, vet selectable; Submit.
 - **Modify:**
+  - `frontend/components/SlotPicker.tsx`: add optional props `lockedServiceId?: number` (initial and fixed service, select disabled, `onSelect` still reports it) and `initialVeterinarianId?: number`; existing booking callers unchanged.
   - `frontend/app/actions/appointments.ts`: `rescheduleAppointment(id, vetId, startAt)`.
-  - `frontend/components/AppointmentActions.tsx`: `RESCHEDULE` links to the reschedule page.
-  - `frontend/app/appointments/[id]/page.tsx`: show "Rescheduled from #id" / "Rescheduled to #id" links.
+  - `frontend/components/AppointmentActions.tsx`: it wires CONFIRM/CANCEL/START/FINISH itself when `appointmentId` is given; add `all.RESCHEDULE = () => router.push(`/appointments/${appointmentId}/reschedule`)` (no server action).
+  - `frontend/app/appointments/[id]/page.tsx`: show "Rescheduled from #id" / "Rescheduled to #id" links using `rescheduledFromId`/`rescheduledToId` (already in `lib/types.ts`).
 
 #### Implementation Tasks
 
@@ -1084,9 +1085,10 @@ Frontend:
 2. Tests: as listed.
 
 **Frontend**
-1. `appointments/[id]/reschedule/page.tsx`: `await requireRole("RECEPTIONIST")` before loading the appointment; other roles redirected to `/`.
-2. `reschedule-form.tsx`: on success redirect to the new appointment; on `SLOT_TAKEN` refresh slots.
-3. Remaining files: as listed.
+1. `SlotPicker`: locked-service support as above.
+2. `appointments/[id]/reschedule/page.tsx`: `await requireRole("RECEPTIONIST")` before loading the appointment; other roles redirected to `/`.
+3. `reschedule-form.tsx`: on success redirect to the new appointment; on `SLOT_TAKEN` bump `refreshKey`.
+4. Remaining files: as listed.
 
 #### Expected Interfaces and Outputs
 
@@ -1402,3 +1404,9 @@ Frontend:
 **Manual** (both apps running)
 - Restart backend → sign in as `reception`, `vet.ana`, `vet.luis` succeed; Veterinarians shows two; booking shows four services.
 - Walk each acceptance criterion: registration validation (missing name/phone, wrong breed, overlapping blocks), breed picker, slot refresh, reserve/confirm/expiry, double booking, walk-in booker, every transition per role, cancel without reason, reschedule/reassign link, exact single payment, debt listing, owner isolation, reception board and history, badges/actions → each behaves as specified.
+
+## Plan Changelog
+
+| Date | Mode | Increments | Change |
+|---|---|---|---|
+| 2026-11-05 | Mode 2 | I12 | Added SlotPicker service-lock props (SlotPicker had no preset); RESCHEDULE wired in AppointmentActions via router.push; noted existing service/DTO signatures. |

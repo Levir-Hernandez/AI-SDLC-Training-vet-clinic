@@ -23,15 +23,24 @@ export function SlotPicker({
   veterinarians,
   refreshKey = 0,
   onSelect,
+  lockedServiceId,
+  initialVeterinarianId,
 }: {
   services: Service[];
   veterinarians: Veterinarian[];
+  /** Fixed service: initial value, select disabled. */
+  lockedServiceId?: number;
+  initialVeterinarianId?: number;
   /** Change to force a reload of the slots (e.g. after a lost race). */
   refreshKey?: number;
   onSelect: (slot: Slot | null, serviceId: number | null) => void;
 }) {
-  const [serviceId, setServiceId] = useState("");
-  const [vetId, setVetId] = useState("");
+  const [serviceId, setServiceId] = useState(
+    lockedServiceId !== undefined ? String(lockedServiceId) : "",
+  );
+  const [vetId, setVetId] = useState(
+    initialVeterinarianId !== undefined ? String(initialVeterinarianId) : "",
+  );
   const [date, setDate] = useState(today);
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [error, setError] = useState<string | undefined>();
@@ -67,6 +76,7 @@ export function SlotPicker({
           Service
           <select
             value={serviceId}
+            disabled={lockedServiceId !== undefined}
             onChange={(e) => change(setServiceId, e.target.value, e.target.value)}
             className={FIELD}
           >

@@ -87,6 +87,34 @@ export async function finishAppointment(id: number): Promise<SimpleResult> {
   return visitAction(id, "finish");
 }
 
+export interface RescheduleResult {
+  id?: number;
+  error?: string;
+  slotLost?: boolean;
+}
+
+export async function rescheduleAppointment(
+  id: number,
+  veterinarianId: number,
+  startAt: string,
+): Promise<RescheduleResult> {
+  try {
+    const created = await apiPost<Appointment>(`/api/appointments/${id}/reschedule`, {
+      veterinarianId,
+      startAt,
+    });
+    return { id: created.id };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 409 && ["SLOT_TAKEN", "SLOT_UNAVAILABLE"].includes(error.code)) {
+        return { error: "That slot was just taken. Pick another one.", slotLost: true };
+      }
+      if ([400, 403, 404, 409].includes(error.status)) return { error: error.message };
+    }
+    return { error: "Could not reschedule the appointment. Try again later." };
+  }
+}
+
 export interface ObservationsState {
   saved?: boolean;
   error?: string;

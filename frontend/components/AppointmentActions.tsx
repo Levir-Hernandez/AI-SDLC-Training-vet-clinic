@@ -66,6 +66,7 @@ export function AppointmentActions({
         });
       };
     }
+    all.RESCHEDULE = () => router.push(`/appointments/${appointmentId}/reschedule`);
     all.CANCEL = () => {
       setError(undefined);
       setCancelError(undefined);
