@@ -383,7 +383,7 @@ Frontend:
 
 ### I4 — Authentication, roles and demo seed
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** The seeded receptionist and veterinarians sign in on the frontend, the JWT lives only in an HttpOnly cookie, protected API calls require a valid token, errors are `ProblemDetail`, and sign-out clears the session.
 - **Covers:** Technology Constraints (stateless JWT, roles in token, HttpOnly/Secure/SameSite cookie, sign-out, OpenAPI, seeded demo data); Roles; seed "receptionist account, two veterinarians with weekly schedules, and the four services"; acceptance "backend builds and tests pass; frontend builds and lints".
 - **Depends on:** I3

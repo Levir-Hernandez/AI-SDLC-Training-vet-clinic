@@ -72,7 +72,8 @@ class BookingConcurrencyIntegrationTests {
 		pet = pets.save(new Pet("Rex", Species.DOG, Breed.BULLDOG, owner));
 		vet = vets.save(new Veterinarian("Dr. Race", "General", new BigDecimal("20"),
 				List.of(new ScheduleBlock(DayOfWeek.WEDNESDAY, LocalTime.of(9, 0), LocalTime.of(17, 0)))));
-		service = services.save(new ClinicService(ServiceCode.GROOMING, "Race grooming", 60, new BigDecimal("40")));
+		service = services.findByCode(ServiceCode.GROOMING).orElseGet(
+				() -> services.save(new ClinicService(ServiceCode.GROOMING, "Race grooming", 60, new BigDecimal("40"))));
 	}
 
 	@AfterEach
@@ -81,7 +82,6 @@ class BookingConcurrencyIntegrationTests {
 		pets.delete(pet);
 		owners.delete(owner);
 		vets.delete(vet);
-		services.delete(service);
 	}
 
 	@Test
