@@ -1,35 +1,35 @@
 # Changelog
 
-## [Unreleased] — 2026-10-17
+## [2026-11-05] — Orchestrated build
 
 ### Added
-- Created an implementation plan with 14 ordered increments covering authentication, veterinarians and services, owners and pets, availability, walk-in and online booking, cancellation, visits, the reception board, rescheduling, payments and debts, pet history, badge consistency and a final acceptance pass.
-- Defined a single lifecycle component that owns the full transition table and drives the allowed actions shown in the UI.
-- Specified slot-level concurrency protection through a veterinarian row lock and an overlap re-check at booking.
-- Recorded assumptions covering owner and veterinarian accounts, seed credentials and schedules, time zone and slot grid, debt definition, reassignment totals and the Secure cookie on localhost.
-- Added a first plan review that flagged the increment ordering, an early use of the debt flag, an unbound status filter, the pet history endpoint mapping, a missing reschedule page guard and an unused owner history endpoint.
-- Added a core domain increment that creates every entity, enum and repository together with the appointment lifecycle table and its tests.
-- Added two application-service increments that build the registration use cases and all appointment and payment use cases in their final shape, tested with a fixed clock and a service-level concurrency test.
-- Added an assumption that the first three increments are backend-only and change nothing visible.
-- Added a second plan review that confirmed the layered increment order and flagged an undefined validation rule on the cancel request.
-- Added a third plan review that confirmed the status filter binding, the reschedule page guard and the cancel validation fixes.
-- Added an owner pet history page reached from a History link per pet on the owner's pets list, using the existing pet history endpoint and showing a not-found page for another owner's pet.
-- Recorded an assumption that owners may view their own pets' service history, since the task lists only reception history.
-- Added a fourth plan review that confirmed the owner pet history view and flagged an unsupported date default on the veterinarian list and a mislabelled allowed-actions test.
-- Added a fifth plan review that confirmed the veterinarian list and allowed-actions test fixes, and flagged a weak pet history slice test and a reservation TTL override that may not take effect in the manual expiry check.
+- Added JWT sign-in, a current-user endpoint, role-aware security, demo seed data, and a frontend login with cookie session and header.
+- Added the core domain model, repositories and the appointment lifecycle transition table that drives the allowed actions shown in the UI.
+- Added registration, availability, booking, appointment action, query and payment services, with a reservation expiry job and slot-level concurrency protection.
+- Added the services catalog and the reception veterinarians page, with registration including a weekly schedule.
+- Added owner and pet registration with a species-filtered breed picker and an owner "My pets" page.
+- Added the walk-in booking page and the appointment detail page.
+- Added online booking, where an owner reserves a slot and confirms it with a countdown before the reservation expires and is released.
+- Added the owner appointments list and cancellation with a required reason.
+- Added visit start, finish and observation editing for veterinarians and reception, and a veterinarian appointments page.
+- Added the reception board of ongoing appointments with date and veterinarian filters.
+- Added reception rescheduling and reassignment of appointments, with a linked new appointment.
+- Added payments, appointment closing and a debts screen for reception.
+- Added a pet service history page for reception and owners, with upcoming and past sections.
+- Added loading and error states for the owner, veterinarian, reception and appointment routes.
+- Added a full-lifecycle acceptance test with real sign-ins and rejection cases.
 
 ### Changed
-- Reordered the plan so authentication, seed data, controllers and screens come as vertical slices after the domain and service layers, growing the plan from 14 to 16 increments.
-- Changed the slice increments so they only add controllers, security wiring and screens on top of the existing services.
-- Moved the full demo seed (receptionist, veterinarians and services) into the authentication increment.
-- Listed every supported appointment list query parameter and the increment that adds it in the Backend API Summary.
+- Reordered the plan into domain, services and then vertical slices, growing it from 14 to 16 increments.
 - Included the owner pet history page in the badge and allowed-actions consistency pass.
+- Bumped JaCoCo to 0.8.14.
+- Cleaned up a misleading deviation note and added a missing test for the expiry reason.
 
 ### Fixed
-- Fixed the piecemeal design of the booking and action services, including the late extraction of the shared scheduled-booking method used by rescheduling.
-- Fixed the early use of the debt flag, which is now computed only after payments exist.
-- Bound the comma-separated status filter on the appointment list in the visit increment, with tests for valid and unknown values.
+- Fixed the concurrent booking test so it loads the application context and no longer collides with seeded services.
+- Fixed the frontend build failing on the root layout session lookup.
+- Bound the comma-separated status filter on the appointment list, and removed the unsupported default from the veterinarian list.
 - Added a server-side receptionist role check to the reschedule page.
-- Declared the cancel request reason as required and at most 500 characters, and aligned the cancel dialog with the validation error the API returns.
-- Reclassified the allowed-actions response test in the badge consistency increment as an integration test, so the real query service and lifecycle produce the actions it checks.
-- Removed the unsupported today-and-upcoming default from the veterinarian appointment list, which now relies on the non-final status filter and start-time ordering.
+- Declared the cancel reason as required and at most 500 characters.
+
+<!-- progress-entries: 111 -->
