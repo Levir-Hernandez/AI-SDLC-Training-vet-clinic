@@ -75,12 +75,14 @@ class AuthFlowIntegrationTests {
 
 	@Test
 	void expiredTokenReturns401() throws Exception {
+		// Token issued a day ago with an 8-hour lifetime, so it is already expired when used now.
 		Clock past = Clock.fixed(Instant.now().minus(Duration.ofDays(1)), ZoneOffset.UTC);
 		String token = new TokenService(jwtEncoder, past, Duration.ofHours(8))
 			.issue(accounts.findByUsername("reception").orElseThrow());
 
 		mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
-			.andExpect(status().isUnauthorized());
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
 	}
 
 	@Test

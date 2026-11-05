@@ -499,3 +499,34 @@
 - tests: 234 passed / 0 failed
 - coverage: 95.8% lines, 85.5% branches
 - failures: none
+
+## [2026-11-05 00:09] — Refactor — test-gap-expire-reason
+- agent: refactor
+- increment: -
+- summary: Cleanup run: expiredTokenReturns401 now asserts code UNAUTHORIZED and has a clarifying comment; confirmed AppointmentActionServiceTests asserts cancelReason "Reservation expired".
+- files_modified: [AuthFlowIntegrationTests]
+- decisions: [no production code changed]
+- deviations: none
+- tests: not run (per orchestrator instruction)
+- blockers: none
+
+## [2026-11-05 00:10] — CodeReview — increment -
+- agent: code-review
+- increment: -
+- attempt: 1
+- summary: Cleanup addresses test-gap-expire-reason: expiredTokenReturns401 now asserts $.code = UNAUTHORIZED with a clarifying comment. Test assertion pattern matches wrongPasswordReturns401 precedent; no production code changed.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/test/java/com/vetclinic/auth/AuthFlowIntegrationTests.java]
+
+## [2026-11-05 00:10] — TestRun — I- attempt 1
+- agent: test-runner
+- increment: -
+- attempt: 1
+- mode: increment
+- summary: Backend verify ran all 234 tests, all passed
+- result: PASS
+- tests: 234 passed / 0 failed
+- coverage: 95.8% lines, 85.5% branches
+- failures: none
