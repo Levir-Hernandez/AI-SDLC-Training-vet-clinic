@@ -169,6 +169,24 @@ class AppointmentQueryServiceTests {
 	}
 
 	@Test
+	void ongoingFilterKeepsReservedThroughPaidAcrossOwnersAndVets() {
+		save(annPet, vetA, START, AppointmentStatus.RESERVED);
+		save(bobPet, vetB, START.plusHours(1), AppointmentStatus.SCHEDULED);
+		save(annPet, vetA, START.plusHours(2), AppointmentStatus.IN_PROGRESS);
+		save(bobPet, vetB, START.plusHours(3), AppointmentStatus.FINISHED);
+		save(annPet, vetA, START.plusHours(4), AppointmentStatus.PAID);
+		save(annPet, vetA, START.plusHours(5), AppointmentStatus.CLOSED);
+		save(bobPet, vetB, START.plusHours(6), AppointmentStatus.CANCELLED);
+		save(bobPet, vetB, START.plusHours(7), AppointmentStatus.RESCHEDULED);
+
+		var page = queries.list(reception, new AppointmentFilter(null, null, null, null, true), PageRequest.of(0, 20));
+
+		assertThat(page.content()).extracting(AppointmentResponse::status).containsExactly(AppointmentStatus.RESERVED,
+				AppointmentStatus.SCHEDULED, AppointmentStatus.IN_PROGRESS, AppointmentStatus.FINISHED,
+				AppointmentStatus.PAID);
+	}
+
+	@Test
 	void historyIsNewestFirstWithUpcomingFlags() {
 		save(annPet, vetA, NOW.minusDays(2), AppointmentStatus.CLOSED);
 		save(annPet, vetA, START, AppointmentStatus.SCHEDULED);

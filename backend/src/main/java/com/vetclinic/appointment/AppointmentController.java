@@ -88,9 +88,10 @@ public class AppointmentController {
 	public PageResponse<AppointmentResponse> list(@RequestParam(required = false) List<AppointmentStatus> status,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
 			@RequestParam(required = false) Long veterinarianId, @RequestParam(required = false) Boolean debt,
+			@RequestParam(required = false) Boolean ongoing,
 			Pageable pageable, Authentication authentication) {
 		return queries.list(CurrentUser.from(authentication),
-				new AppointmentFilter(status, date, veterinarianId, debt), pageable);
+				new AppointmentFilter(status, date, veterinarianId, debt, ongoing), pageable);
 	}
 
 	@GetMapping("/{id}")

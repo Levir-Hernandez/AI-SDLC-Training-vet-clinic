@@ -877,3 +877,40 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/main/java/com/vetclinic/shared/error/GlobalExceptionHandler.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, frontend/app/vet/layout.tsx, frontend/app/vet/appointments/page.tsx, frontend/components/ObservationsEditor.tsx, frontend/app/actions/appointments.ts, frontend/components/AppointmentActions.tsx, frontend/app/appointments/[id]/page.tsx, frontend/app/page.tsx, frontend/lib/api.ts, frontend/lib/auth.ts]
+
+## [2026-11-05 01:02] — Increment — I11 attempt 1
+- agent: implementation
+- increment: I11
+- attempt: 1
+- summary: Reception ongoing appointments board with ongoing filter on GET /api/appointments.
+- files_created: [frontend/app/reception/appointments/page.tsx]
+- files_modified: [AppointmentFilter, AppointmentQueryService, AppointmentController, AppointmentControllerTests, AppointmentQueryServiceTests, frontend/app/page.tsx]
+- interfaces_created: [GET /api/appointments?ongoing=true, /reception/appointments]
+- decisions: [AppointmentFilter keeps a 4-arg constructor for existing callers, AppHeader already had the link]
+- deviations: owner-cancel-in-progress test not added
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added the reception board of ongoing appointments with date and veterinarian filters.
+
+## [2026-11-05 01:05] — TestRun — I11 attempt 1
+- agent: test-runner
+- increment: I11
+- summary: Backend verify passed (288 tests), frontend lint passed, frontend build passed (security notice, retried)
+- attempt: 1
+- mode: increment
+- result: PASS
+- tests: 288 passed / 0 failed
+- coverage: 95.9% lines, 86.0% branches
+- failures: none
+
+## [2026-11-05 14:00] — CodeReview — I11 attempt 1
+- agent: code-review
+- increment: I11
+- attempt: 1
+- summary: Reception ongoing appointments board correctly implements backend filter and frontend page with role-based access, pagination, and cancellation validation.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/main/java/com/vetclinic/appointment/AppointmentFilter.java, backend/src/main/java/com/vetclinic/appointment/AppointmentQueryService.java, backend/src/main/java/com/vetclinic/appointment/AppointmentController.java, backend/src/test/java/com/vetclinic/appointment/AppointmentControllerTests.java, backend/src/test/java/com/vetclinic/appointment/AppointmentQueryServiceTests.java, frontend/app/reception/appointments/page.tsx, frontend/app/page.tsx, frontend/components/AppHeader.tsx]

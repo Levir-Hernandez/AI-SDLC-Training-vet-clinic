@@ -220,6 +220,29 @@ class AppointmentControllerTests {
 	}
 
 	@Test
+	void ongoingFlagReachesService() throws Exception {
+		when(queries.list(any(), any(), any())).thenReturn(new PageResponse<>(List.of(response()), 0, 20, 1));
+
+		mockMvc.perform(get("/api/appointments?ongoing=true&veterinarianId=3&date=2030-01-07")
+			.header("Authorization", "Bearer " + TestJwt.receptionist()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content[0].id").value(5));
+
+		org.mockito.ArgumentCaptor<com.vetclinic.appointment.dto.AppointmentFilter> captor = org.mockito.ArgumentCaptor
+			.forClass(com.vetclinic.appointment.dto.AppointmentFilter.class);
+		org.mockito.Mockito.verify(queries).list(any(), captor.capture(), any());
+		org.assertj.core.api.Assertions.assertThat(captor.getValue().ongoing()).isTrue();
+		org.assertj.core.api.Assertions.assertThat(captor.getValue().veterinarianId()).isEqualTo(3L);
+	}
+
+	@Test
+	void receptionistCancelWithoutReasonIsBadRequest() throws Exception {
+		mockMvc.perform(post("/api/appointments/5/cancel").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"reason\":\"\"}").header("Authorization", "Bearer " + TestJwt.receptionist()))
+			.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void unknownStatusIsValidationFailed() throws Exception {
 		mockMvc.perform(get("/api/appointments?status=FOO").header("Authorization", "Bearer " + TestJwt.receptionist()))
 			.andExpect(status().isBadRequest())

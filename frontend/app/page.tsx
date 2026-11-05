@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 
 // Role landing routes; until they exist the welcome below is rendered.
 const LANDING_READY: Record<string, string | null> = {
-  RECEPTIONIST: null, // "/reception/appointments"
+  RECEPTIONIST: "/reception/appointments",
   OWNER: "/owner/appointments",
   VETERINARIAN: "/vet/appointments",
 };

@@ -110,6 +110,10 @@ public class AppointmentQueryService {
 			if (filter.statuses() != null && !filter.statuses().isEmpty()) {
 				ps.add(root.get("status").in(filter.statuses()));
 			}
+			if (Boolean.TRUE.equals(filter.ongoing())) {
+				ps.add(root.get("status").in(AppointmentStatus.RESERVED, AppointmentStatus.SCHEDULED,
+						AppointmentStatus.IN_PROGRESS, AppointmentStatus.FINISHED, AppointmentStatus.PAID));
+			}
 			if (filter.date() != null) {
 				ps.add(cb.greaterThanOrEqualTo(root.<LocalDateTime>get("startAt"), filter.date().atStartOfDay()));
 				ps.add(cb.lessThan(root.<LocalDateTime>get("startAt"), filter.date().plusDays(1).atStartOfDay()));
