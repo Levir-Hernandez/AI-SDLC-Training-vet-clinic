@@ -67,6 +67,48 @@ export interface Veterinarian {
   schedule: ScheduleBlock[];
 }
 
+export type Species = "DOG" | "CAT";
+
+export type Breed =
+  | "LABRADOR_RETRIEVER"
+  | "GERMAN_SHEPHERD"
+  | "GOLDEN_RETRIEVER"
+  | "BULLDOG"
+  | "DOG_MIXED"
+  | "SIAMESE"
+  | "PERSIAN"
+  | "MAINE_COON"
+  | "BENGAL"
+  | "CAT_MIXED";
+
+export interface Pet {
+  id: number;
+  name: string;
+  species: Species;
+  breed: Breed;
+  ownerId: number;
+}
+
+export interface Owner {
+  id: number;
+  name: string;
+  phone: string;
+  pets: Pet[] | null;
+}
+
+export interface CreatePetRequest {
+  name: string;
+  species: Species;
+  breed: Breed;
+}
+
+export interface CreateOwnerRequest {
+  name: string;
+  phone: string;
+  password: string;
+  pets: CreatePetRequest[];
+}
+
 export interface CreateVeterinarianRequest {
   name: string;
   specialization: string;

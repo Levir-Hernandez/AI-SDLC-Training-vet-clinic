@@ -5,10 +5,14 @@ import type { CurrentUser, Role } from "@/lib/types";
 const NAV: Record<Role, { href: string; label: string }[]> = {
   RECEPTIONIST: [
     { href: "/reception/appointments", label: "Appointments" },
+    { href: "/reception/owners", label: "Owners" },
     { href: "/reception/veterinarians", label: "Veterinarians" },
   ],
   VETERINARIAN: [{ href: "/vet/appointments", label: "My appointments" }],
-  OWNER: [{ href: "/owner/appointments", label: "My appointments" }],
+  OWNER: [
+    { href: "/owner/appointments", label: "My appointments" },
+    { href: "/owner/pets", label: "My pets" },
+  ],
 };
 
 const ROLE_LABEL: Record<Role, string> = {

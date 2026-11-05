@@ -586,7 +586,7 @@ Frontend:
 
 ### I6 — Owners and pets registration with breed picker
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception registers owners (with sign-in) and their pets using a species-filtered breed picker; owners sign in and see only their own pets.
 - **Covers:** Flow "Register" (owners and pets, UI + API); rule "owners see only their own pets" (API); Pets species/breeds list (UI); acceptance "register an owner with pets; missing name or phone, breed not matching species rejected with a clear message", "breed picker only offers breeds of the selected species".
 - **Depends on:** I5

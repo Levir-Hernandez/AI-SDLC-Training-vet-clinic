@@ -575,3 +575,84 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [CatalogController.java, VeterinarianController.java, CatalogControllerTests.java, VeterinarianControllerTests.java, reception/layout.tsx, reception/veterinarians/page.tsx, veterinarian-form.tsx, actions/veterinarians.ts, EmptyState.tsx, Pagination.tsx, lib/types.ts, AppHeader.tsx]
+
+## [2026-11-05 00:17] — Validation — before I6
+- agent: planner
+- increment: I6
+- summary: I6 matches built code (OwnerService.create/list, PetService.listFor, Breed/Species, PHONE_TAKEN, BREED_SPECIES_MISMATCH); totalPages removal does not affect it.
+- trigger: deviations
+- rewritten: none
+
+## [2026-11-05 00:18] — Increment — I6 attempt 1
+- agent: implementation
+- increment: I6
+- attempt: 1
+- summary: Reception can register owners and pets with a species-filtered breed picker; owners see only their own pets.
+- files_created: [OwnerController, PetController, OwnerControllerTests, PetControllerTests, lib/breeds.ts, components/PetForm.tsx, app/actions/owners.ts, reception/owners/page.tsx, reception/owners/owner-form.tsx, reception/owners/[id]/page.tsx, reception/owners/[id]/add-pet-form.tsx, owner/layout.tsx, owner/pets/page.tsx]
+- files_modified: [lib/types.ts, components/AppHeader.tsx]
+- interfaces_created: [POST/GET /api/owners, GET /api/owners/{id}, POST /api/owners/{id}/pets, GET /api/pets]
+- decisions: [reused PetService.add(Long, req) for add-pet so no service change; OwnerController class-level PreAuthorize receptionist; owner search keeps q out of pagination links]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added owner and pet registration with a species-filtered breed picker and an owner "My pets" page.
+
+## [2026-11-05 11:00] — CodeReview — I6 attempt 1
+- agent: code-review
+- increment: I6
+- attempt: 1
+- summary: I6 adds owner and pet registration with breed picker. Found: PetControllerTests missing imports for Species and Breed causing compilation error. Pagination drops search term on page navigation (noted limitation). Everything else matches expected interfaces.
+- result: FAIL
+- critical_high: [backend/src/test/java/com/vetclinic/owner/PetControllerTests.java:38 missing imports for Species and Breed enums used in test - will not compile]
+- medium_findings: pagination-search-term-lost
+- files_reviewed: [OwnerController.java, PetController.java, OwnerControllerTests.java, PetControllerTests.java, lib/breeds.ts, components/PetForm.tsx, app/actions/owners.ts, reception/owners/page.tsx, reception/owners/owner-form.tsx, reception/owners/[id]/page.tsx, reception/owners/[id]/add-pet-form.tsx, owner/layout.tsx, owner/pets/page.tsx, lib/types.ts, components/AppHeader.tsx, Species.java, Breed.java, backend DTOs]
+
+## [2026-11-05 00:20] — TestRun — I6 attempt 1
+- agent: test-runner
+- increment: I6
+- attempt: 1
+- mode: increment
+- summary: All tests passed; 251 backend tests passed; frontend lint passed; frontend build passed (security notice, retried); coverage 95.5% lines, 85.5% branches
+- result: PASS
+- tests: 251 passed / 0 failed
+- coverage: 95.5% lines, 85.5% branches
+- failures: none
+
+## [2026-11-05 00:21] — Refactor — I6 attempt 2
+- agent: refactor
+- increment: I6
+- attempt: 2
+- summary: Pagination now keeps extra query params so paging on the owners list keeps the search term.
+- files_created: []
+- files_modified: [Pagination, reception/owners/page]
+- interfaces_created: [Pagination optional params prop]
+- decisions: [PetControllerTests High finding not applied: file is in package com.vetclinic.owner, same as Species and Breed, so no import is needed and verify compiled]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+### Fixed
+- Kept the search term when paging through the owners list.
+
+## [2026-11-05 12:00] — CodeReview — I6 attempt 2
+- agent: code-review
+- increment: I6
+- attempt: 2
+- summary: I6 refinements add search persistence to pagination and complete type definitions. Previous false High finding (missing imports) confirmed wrong: tests compiled and passed. All expected interfaces present and correct.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [OwnerController.java, PetController.java, OwnerControllerTests.java, PetControllerTests.java, lib/breeds.ts, components/PetForm.tsx, app/actions/owners.ts, reception/owners/page.tsx, reception/owners/owner-form.tsx, reception/owners/[id]/page.tsx, reception/owners/[id]/add-pet-form.tsx, owner/layout.tsx, owner/pets/page.tsx, lib/types.ts, components/AppHeader.tsx, components/Pagination.tsx]
+
+## [2026-11-05 00:25] — TestRun — I6 attempt 2
+- agent: test-runner
+- increment: I6
+- attempt: 2
+- mode: increment
+- summary: All tests passed; 251 backend tests passed; frontend lint passed; frontend build passed (security notice, retried); coverage 95.5% lines, 85.5% branches
+- result: PASS
+- tests: 251 passed / 0 failed
+- coverage: 95.5% lines, 85.5% branches
+- failures: none
