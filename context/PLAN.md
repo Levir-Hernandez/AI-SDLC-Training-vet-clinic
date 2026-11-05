@@ -671,7 +671,7 @@ Frontend:
 
 ### I7 — Availability, walk-in booking and appointment detail
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Reception picks a pet and a free slot and books a walk-in that is immediately `SCHEDULED` with reception as booker; the detail page shows a status badge and only allowed actions; concurrent bookings of the same slot cannot both succeed over HTTP.
 - **Covers:** Flow "Book a walk-in" (UI + API); rule "two bookings cannot take the same slot; second rejected and user sees fresh availability"; acceptance "walk-in scheduled immediately and records reception as booker", "two bookings for same vet and overlapping time cannot both succeed", "owner sees only free slots for chosen service, veterinarian and date" (API), "each status shows a consistent badge, only allowed actions offered" (badge + action bar introduced).
 - **Depends on:** I6
