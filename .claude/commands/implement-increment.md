@@ -24,18 +24,10 @@ If any check fails, stop. Report which prerequisite failed and the exact values 
 
 Implement the increment and verify each completion criterion. Then update the two files below, changing only the parts named here.
 
-**`context/PLAN.md`**: in Increment `$ARGUMENTS` only:
+**`context/PLAN.md`**: with `update-increment-status.py`, set Increment `$ARGUMENTS` to `completed` only if every completion criterion was met, all tests pass, and there are no blockers. Otherwise set it to `blocked`.
 
-- Set the status to `completed` only if every completion criterion was met, all tests pass, and there are no blockers. Otherwise set it to `blocked`.
-- Mark each completion criterion as met or not met.
-
-**`context/PROGRESS.md`**: append a section for Increment `$ARGUMENTS` (create the file if it does not exist; never rewrite earlier sections) with:
-
-1. **Behavior delivered**: what now works that did not before.
-2. **Decisions and deviations**: material choices or departures from the plan, and how each review finding targeting this increment was handled (fixed, deferred, or rejected, with a reason).
-3. **Tests**: aggregate results (passed, failed, skipped).
-4. **Blockers**: anything preventing the increment from being `completed`, or "None".
+**`context/PROGRESS.md`**: append an `Increment` entry through `update-progress`, with what now works, each completion criterion met or not met, material decisions and deviations, how each review finding targeting this increment was handled (fixed, deferred, or rejected, with a reason), test results and blockers.
 
 ## 3. Reply
 
-Reply with the resulting status, a one-line summary of each section written to `PROGRESS.md` and any blockers.
+Reply with the resulting status, a one-line summary of the entry written to `PROGRESS.md` and any blockers.

@@ -40,7 +40,7 @@ def findings(lines):
 
 def main(argv):
     sys.stdout.reconfigure(encoding="utf-8")
-    if len(argv) != 1 or not re.fullmatch(r"[Ii]?\d+", argv[0]):
+    if len(argv) != 1 or not re.fullmatch(r"[Ii]?\d+[a-z]?", argv[0]):
         print(f"BLOCKED: invalid increment '{' '.join(argv)}'; use a number like 7 or I7.")
         return 0
     key = "I" + argv[0].lstrip("Ii")
@@ -55,7 +55,7 @@ def main(argv):
     targeted = []
     for severity, block in findings(lines):
         targets = field(block, "Targets") or ""
-        if any(OPEN.match(l) for l in block) and key in re.findall(r"\bI\d+\b", targets):
+        if any(OPEN.match(l) for l in block) and key in re.findall(r"\bI\d+[a-z]?\b", targets):
             targeted.append((severity, block))
 
     ok = f"OK: plan review allows implementing {key}."

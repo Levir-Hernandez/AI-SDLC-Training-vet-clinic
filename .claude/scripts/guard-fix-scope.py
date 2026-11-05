@@ -17,6 +17,8 @@ ALLOWED = (
     "read-bug.py",
     "check-bug-status.py",
     "update-bug-status.py",
+    "context-write.py",
+    "read-progress.py",
 )
 WRITABLE_FILES = ("context/PROGRESS.md", "context/CHANGELOG.md")
 WRITABLE_DIRS = ("backend/", "frontend/")

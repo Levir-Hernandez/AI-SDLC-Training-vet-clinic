@@ -84,7 +84,7 @@ Run: `cd backend && ./mvnw spring-boot:run` (http://localhost:8080), then `cd fr
 
 ### I1 — Core domain model and appointment lifecycle
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Every entity, enum and repository of the domain exists with its invariants, and the centralized `AppointmentLifecycle` enforces the full `TASK.md` transition table, all proven by unit and JPA slice tests.
 - **Covers:** Entities (Owner, Pet, Veterinarian, Service, Appointment, Payment, Service history as appointments per pet); Pets species/breeds list; Services fixed list; Appointment lifecycle (full transition table, final states, "any other transition is rejected"); rules "schedule blocks on the same weekday do not overlap, each starts before it ends", "breed must belong to species", "one appointment covers one service, one pet, one veterinarian", "prices and veterinarian costs are zero or more", "observations can be edited until closed or cancelled"; Technology "money uses exact decimal types"; acceptance "each status transition works for listed roles, every other rejected" (rules at unit level).
 - **Depends on:** I0
@@ -191,7 +191,7 @@ Frontend:
 
 ### I2 — Registration use cases
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Application services register veterinarians (with schedule and account), owners (with account and optional pets) and pets, list them paginated, and enforce owner data scoping, all unit tested.
 - **Covers:** Flow "Register" (service layer); rules "owner name and phone required; phone unique", "pet belongs to one owner, has name, species and breed; breed must belong to species", "schedule blocks do not overlap", "veterinarian costs are zero or more", "owners see only their own pets"; Roles (account per owner and veterinarian, A1, A2).
 - **Depends on:** I1
@@ -277,7 +277,7 @@ Frontend:
 
 ### I3 — Appointment and payment use cases
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** All appointment use cases (availability, walk-in and online booking, confirm, expire, cancel, start, finish, observations, reschedule/reassign, pay, close, scoped queries, debt and pet history) exist as application services in their final shape, unit tested with a fixed `Clock`, with concurrency proven at service level.
 - **Covers:** Flows "Book online", "Book a walk-in", "Visit", "Reschedule or reassign", "Cancel", "Pay and close", "Follow up" (service layer); every lifecycle row (via `AppointmentLifecycle`); rules "slot available when duration fits schedule and does not overlap reserved, scheduled or in-progress appointments", "appointments are booked in the future", "two bookings cannot take the same slot", "total = base price + veterinarian cost, fixed at booking", "one exact payment per finished appointment", "Rescheduled and Closed are final", "owners see only their own appointments"; acceptance "two bookings for same vet and overlapping time cannot both succeed" (service level), "unconfirmed reservation expires and slot becomes free" (service level).
 - **Depends on:** I1, I2
@@ -383,7 +383,7 @@ Frontend:
 
 ### I4 — Authentication, roles and demo seed
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** The seeded receptionist and veterinarians sign in on the frontend, the JWT lives only in an HttpOnly cookie, protected API calls require a valid token, errors are `ProblemDetail`, and sign-out clears the session.
 - **Covers:** Technology Constraints (stateless JWT, roles in token, HttpOnly/Secure/SameSite cookie, sign-out, OpenAPI, seeded demo data); Roles; seed "receptionist account, two veterinarians with weekly schedules, and the four services"; acceptance "backend builds and tests pass; frontend builds and lints".
 - **Depends on:** I3
@@ -504,7 +504,7 @@ Frontend:
 
 ### I5 — Services catalog and veterinarian registration
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception lists the four seeded services and two seeded veterinarians, and registers a new veterinarian with a weekly schedule; invalid schedules and negative costs are rejected with clear messages.
 - **Covers:** Flow "Register" (veterinarians, UI + API); Services fixed list; acceptance "register a veterinarian with a weekly schedule; overlapping schedule blocks rejected with a clear message".
 - **Depends on:** I4
@@ -586,7 +586,7 @@ Frontend:
 
 ### I6 — Owners and pets registration with breed picker
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception registers owners (with sign-in) and their pets using a species-filtered breed picker; owners sign in and see only their own pets.
 - **Covers:** Flow "Register" (owners and pets, UI + API); rule "owners see only their own pets" (API); Pets species/breeds list (UI); acceptance "register an owner with pets; missing name or phone, breed not matching species rejected with a clear message", "breed picker only offers breeds of the selected species".
 - **Depends on:** I5
@@ -671,7 +671,7 @@ Frontend:
 
 ### I7 — Availability, walk-in booking and appointment detail
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception picks a pet and a free slot and books a walk-in that is immediately `SCHEDULED` with reception as booker; the detail page shows a status badge and only allowed actions; concurrent bookings of the same slot cannot both succeed over HTTP.
 - **Covers:** Flow "Book a walk-in" (UI + API); rule "two bookings cannot take the same slot; second rejected and user sees fresh availability"; acceptance "walk-in scheduled immediately and records reception as booker", "two bookings for same vet and overlapping time cannot both succeed", "owner sees only free slots for chosen service, veterinarian and date" (API), "each status shows a consistent badge, only allowed actions offered" (badge + action bar introduced).
 - **Depends on:** I6
@@ -758,7 +758,7 @@ Frontend:
 
 ### I8 — Online booking: reserve, confirm and reservation expiry
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** A signed-in owner picks a pet, service, optional vet and date, reserves a free slot, confirms it to schedule the appointment, and unconfirmed reservations expire and free the slot.
 - **Covers:** Flow "Book online" (UI + API); lifecycle rows Reserved→Scheduled (owner, reception), Reserved→Cancelled (system, expired); acceptance "owner sees only free slots for chosen service, veterinarian and date and slots refresh when any change", "owner can reserve and confirm; unconfirmed reservation expires and slot becomes free".
 - **Depends on:** I7
@@ -833,7 +833,7 @@ Frontend:
 
 ### I9 — Owner's appointments and cancellation
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Owners see all their appointments across pets and days with service, veterinarian, time and estimated duration, and cancel their own reserved or scheduled appointments with a reason.
 - **Covers:** Flows "Follow up" (owner part), "Cancel" (owner part, endpoint shared with reception); lifecycle rows Reserved→Cancelled and Scheduled→Cancelled (owner); rule "owners see only their own appointments"; acceptance "owner sees all their appointments across pets and days with estimated duration and cannot see other owners' data", "cancelling without a reason is rejected".
 - **Depends on:** I8
@@ -910,7 +910,7 @@ Frontend:
 
 ### I10 — Visit: start, finish and observations
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Veterinarians see their assigned appointments and, like reception, start and finish them and edit observations until closed or cancelled.
 - **Covers:** Flow "Visit" (UI + API); Roles (Veterinarian); lifecycle rows Scheduled→In progress, In progress→Finished (veterinarian, reception); rule "observations can be edited until closed or cancelled".
 - **Depends on:** I9
@@ -984,7 +984,7 @@ Frontend:
 
 ### I11 — Reception ongoing appointments board
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception sees all ongoing appointments in one screen with status badges and cancel actions, and can cancel any active appointment with a reason.
 - **Covers:** Flow "Follow up" (reception part), "Cancel" (reception part); lifecycle rows Reserved/Scheduled/In progress→Cancelled (reception); acceptance "reception sees all ongoing appointments with cancel and payment actions" (cancel part), "cancelling without a reason is rejected".
 - **Depends on:** I10
@@ -1055,7 +1055,7 @@ Frontend:
 
 ### I12 — Reschedule and reassign
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception moves a scheduled or in-progress appointment to another free time and/or veterinarian; the original becomes `RESCHEDULED` and a new linked `SCHEDULED` appointment is created.
 - **Covers:** Flow "Reschedule or reassign" (UI + API); lifecycle rows Scheduled→Rescheduled, In progress→Rescheduled (reception, new slot available); rule "Rescheduled is final"; acceptance "rescheduling or reassigning marks the original as rescheduled and creates a linked scheduled appointment".
 - **Depends on:** I11
@@ -1129,7 +1129,7 @@ Frontend:
 
 ### I13 — Payments, closing and debts
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception records one exact payment on a finished appointment, closes paid appointments, or closes finished unpaid ones as debts listed on a debts screen.
 - **Covers:** Flow "Pay and close" (UI + API); lifecycle rows Finished→Paid, Finished→Closed (debt), Paid→Closed; rule "Closed is final"; acceptance "payment accepted only for a finished appointment and only for its exact total; second payment rejected", "finished appointment closed without payment appears as a debt", "reception sees all ongoing appointments with cancel and payment actions" (payment part).
 - **Depends on:** I12
@@ -1210,7 +1210,7 @@ Frontend:
 
 ### I14 — Pet service history
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Reception opens a pet's service history listing its past and upcoming appointments; owners open the same history for their own pets (A9).
 - **Covers:** Entity "Service history" (UI + API); flow "Follow up" (reception opens a pet's service history); acceptance "reception can open a pet's service history"; rule "owners see only their own pets" (history scope); assumption A9 (owner history view).
 - **Depends on:** I13
@@ -1280,7 +1280,7 @@ Frontend:
 
 ### I15 — Status badges and allowed-actions consistency
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Every screen uses the same status badge and offers exactly the actions the backend reports as allowed for the current user.
 - **Covers:** Acceptance "each status shows a consistent badge, and only allowed actions are offered"; React rules on loading/empty/error states, confirmation of destructive actions, accessibility.
 - **Depends on:** I14
@@ -1346,7 +1346,7 @@ Frontend:
 
 ### I16 — Final acceptance pass
 
-- **Status:** `completed`
+- **Status:** `pending`
 - **Goal:** Every `TASK.md` acceptance criterion is verified end to end on a freshly started system, with an end-to-end integration test.
 - **Covers:** All acceptance criteria (re-verification); seeded demo data; "backend builds and tests pass; frontend builds and lints cleanly".
 - **Depends on:** I15

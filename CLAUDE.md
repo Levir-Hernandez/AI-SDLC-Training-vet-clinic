@@ -21,9 +21,13 @@ Stack: Java 21 + Spring Boot 4.1 (Maven Wrapper) in `backend/`, Next.js 16 + Rea
 | Latest QA pass: acceptance and coverage | `context/QA_REPORT.md` |
 | QA evidence (`.png` screenshots and `.gif` only) | `context/evidence/` |
 | Journal and summary of steps | `context/PROGRESS.md`, `context/CHANGELOG.md` |
-| Agents (`planner`, `plan-reviewer`, `implementation`, `qa`, `refactor`) | `.claude/agents/` |
-| Commands (`/implement-increment`, `/setup-qa-env`, `/qa-env-healthcheck`, `/plan-qa`, `/run-qa`, `/implement-fix`, `/verify-fix`) | `.claude/commands/` |
-| Plan, bug, QA and guard scripts | `.claude/scripts/` |
+| Journal entry shapes | `context/PROGRESS_PATTERNS.md` |
+| Run semaphore (exists only when something is wrong) | `context/BLOCKED.md` |
+| Flight recorder of a run (git-ignored) | `context/TOOLS_USED.md` |
+| Agents (`orchestrator`, `git-manager`, `planner`, `plan-reviewer`, `implementation`, `code-review`, `test-runner`, `qa`, `refactor`) | `.claude/agents/` |
+| Commands (`/run-orchestrator`, `/escalate`, `/implement-increment`, `/setup-qa-env`, `/qa-env-healthcheck`, `/plan-qa`, `/run-qa`, `/implement-fix`, `/verify-fix`) | `.claude/commands/` |
+| Plan, journal, bug, QA and guard scripts | `.claude/scripts/` |
+| Observability hooks | `.claude/hooks/`, wired in `.claude/settings.json` |
 | Skills (plan and journal workflows) | `.claude/skills/` |
 | MCP servers (Playwright) | `.mcp.json`; set up with `/setup-qa-env`, check with `/qa-env-healthcheck` |
 | Path-scoped coding and testing rules | `.claude/rules/` (`java-coder`, `java-tester`, `react-coder`, `react-tester`) |
@@ -96,12 +100,22 @@ From the main session:
 2. `review-plan` (plan-reviewer) → `context/PLAN_REVIEW.md`
 3. While the verdict is not `READY`: `revise-plan [codes] [-- context]`, then `review-plan` again.
 
+## Autonomous Build
+
+`/run-orchestrator` checks the prerequisites, then the `orchestrator` builds every pending increment: pre-flight (planner Mode 2 on that increment when deviations were reported or 3 increments passed) → `implementation` → `code-review` + `test-runner` in parallel → on a failure `refactor` fixes it and both gates run again → the orchestrator marks it `completed` and `git-manager` commits (it only commits) once both pass, then the next increment. Each agent writes its own PROGRESS entry. Three failed attempts trigger planner Mode 3 through `/escalate`. It ends with `planner` writing the changelog, one last commit and the message `Workflow Complete`.
+
+- Follow it live in `context/TOOLS_USED.md`. After `Workflow Halted`, follow the next steps in the message: usually read `BLOCKED.md`, run `/escalate <id>` (or delete it after a planned stop), then `/run-orchestrator` again. It resumes from the plan and the journal; unfinished code stays in place and the next run continues on top of it. Nothing is ever stashed.
+- Cost of a run: `python .claude/scripts/run-cost.py` (latest session, read-only; `--all` for every session).
+- Agents use relative paths and one plain command per Bash call. Compound `cd ... &&` commands, pipes, loops and heredoc file writes need approval and stall the run.
+- Agents in the run change context files only through `.claude/scripts/` (`context-write`, `plan-edit`, `update-increment-status`): the scripts validate each entry, touch only the section they change, never rewrite `completed` increments, and keep agents from reading or rewriting the large files whole.
+- Start the session with `claude --permission-mode acceptEdits`.
+
 ## Implementation
 
-From the main session, one increment at a time:
+From the main session, one increment at a time (the manual alternative to `/run-orchestrator`):
 
 1. `/implement-increment <n>` (implementation agent) checks that the increment is pending or blocked, its dependencies are completed and the plan review allows it, then implements, tests and records the outcome in `context/PROGRESS.md`.
-2. The agent reads and updates the plan only through `.claude/scripts/` (`read-increment`, `check-increment-status`, `check-plan-review-status`, `update-increment-status`); a hook (`guard-plan-context.py`) blocks direct access to `PLAN.md` and `PLAN_REVIEW.md`.
+2. The agent reads and updates the plan only through `.claude/scripts/` (`read-increment`, `check-increment-status`, `check-plan-review-status`, `update-increment-status`); a hook (`guard-plan-context.py`) blocks direct access to `PLAN.md`, `PLAN_REVIEW.md` and `PROGRESS.md`.
 3. Review the diff and test results before running the next increment. `python .claude/scripts/check-increment-status.py --list` shows every increment's status.
 
 ## QA, Fix and Verify

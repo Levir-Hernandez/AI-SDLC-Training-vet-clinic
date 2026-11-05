@@ -26,7 +26,7 @@ Run `python .claude/scripts/check-bug-status.py $ARGUMENTS --for fix`. If it pri
 
 ## 3. Record
 
-Append to `context/PROGRESS.md` with `update-progress` (action `Fix: $ARGUMENTS - <title>`; never rewrite earlier sections):
+Append a `Fix` entry to `context/PROGRESS.md` with `update-progress`:
 
 1. **Root cause**: one sentence.
 2. **Solution**: what changed and why, with the files.

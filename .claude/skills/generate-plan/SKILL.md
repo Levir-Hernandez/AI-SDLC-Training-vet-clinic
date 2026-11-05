@@ -11,7 +11,7 @@ agent: planner
 
 1. Read `TASK.md` and `CLAUDE.md`, then any `.claude/rules/*`. If `TASK.md` or `CLAUDE.md` is missing, stop and name the missing file.
 2. Inspect `backend/` and `frontend/`, skipping dependencies, generated files and build artifacts (`node_modules/`, `.next/`, `target/`).
-3. If `context/PLAN.md` exists, read it and note every `in-progress` and `done` increment. If `context/PLAN_REVIEW.md` exists, read it and address each finding in the new plan.
+3. If `context/PLAN.md` exists, read it and note every `completed` increment. If `context/PLAN_REVIEW.md` exists, read it and address each finding in the new plan.
 4. Write `context/PLAN.md` in the format below, following the rules.
 5. Run the `update-progress` skill, then the `update-changelog` skill.
 
@@ -39,7 +39,7 @@ Short bullets: package and folder layout, auth flow, lifecycle handling, API con
 
 ### I<n> — <Short increment title>
 
-- **Status:** `pending` | `in-progress` | `done` | `blocked: <reason>`
+- **Status:** `pending` | `completed` | `blocked` | `superseded`
 - **Goal:** <One line describing the observable outcome.>
 - **Covers:** <`TASK.md` references: flows, business rules, acceptance criteria>
 - **Depends on:** <I0 and/or lower-numbered increments>
@@ -112,6 +112,11 @@ Frontend:
 
 **Manual** (both apps running)
 - `<command or browser action>` → <expected result>
+
+## Plan Changelog
+
+| Date | Mode | Increments | Change |
+|---|---|---|---|
 ```
 
 ## Rules
@@ -121,6 +126,7 @@ Frontend:
 - **Order:** Authentication, roles and seed data first; then core records in dependency order; then the central workflow and its lifecycle transitions; then payments, history and search; UI polish and a final acceptance pass last.
 - **Dependencies:** An increment depends only on I0 or lower-numbered increments. If it needs later work, move that work earlier and renumber, or re-split so the dependency disappears. Never leave a forward dependency or a placeholder for future work.
 - **Stability:** Every increment leaves both apps building and working.
-- **Regeneration:** Copy `in-progress` and `done` increments unchanged, keeping their numbers. Renumber, reorder or replan only `pending` and `blocked` increments, and place them after the preserved ones when dependencies allow.
+- **Regeneration:** Copy `completed` increments unchanged, keeping their numbers. Renumber, reorder or replan only `pending` and `blocked` increments, and place them after the preserved ones when dependencies allow.
 - **Status:** New increments start as `pending`.
+- **Plan Changelog:** The last section of the plan. Modes 2 and 3 add one row per change through `plan-edit.py changelog`.
 - **Brevity:** Use signatures, paths and one-line sketches; never write full code.

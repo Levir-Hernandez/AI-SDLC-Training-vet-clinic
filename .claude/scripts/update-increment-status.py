@@ -1,22 +1,23 @@
 """Change the status of one increment in context/PLAN.md, touching no other line.
 
 Usage:
-  python .claude/scripts/update-increment-status.py <n> <pending|completed|blocked>
+  python .claude/scripts/update-increment-status.py <n> <pending|completed|blocked|superseded>
 
   blocked marks an increment that failed; it can be retried without resetting it to pending.
+  superseded marks an increment that planner Mode 3 split into sub-increments.
 """
 import re
 import sys
 from pathlib import Path
 
 PLAN = Path(__file__).resolve().parents[2] / "context" / "PLAN.md"
-STATUSES = ("pending", "completed", "blocked")
+STATUSES = ("pending", "completed", "blocked", "superseded")
 STATUS = re.compile(r"^(- \*\*Status:\*\* `)([a-z-]+)(`.*)$")
 
 
 def main(argv):
     sys.stdout.reconfigure(encoding="utf-8")
-    if len(argv) != 2 or not re.fullmatch(r"[Ii]?\d+", argv[0]) or argv[1] not in STATUSES:
+    if len(argv) != 2 or not re.fullmatch(r"[Ii]?\d+[a-z]?", argv[0]) or argv[1] not in STATUSES:
         sys.exit(__doc__)
     key, new = "I" + argv[0].lstrip("Ii"), argv[1]
 

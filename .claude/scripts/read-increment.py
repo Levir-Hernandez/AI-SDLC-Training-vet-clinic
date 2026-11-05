@@ -1,7 +1,7 @@
 """Print the plan header and one increment of context/PLAN.md, without the other increments.
 
 Usage:
-  python .claude/scripts/read-increment.py <n>    (accepts 7 or I7)
+  python .claude/scripts/read-increment.py <n> [--no-header]    (accepts 7, I7 or I7a)
 """
 import re
 import sys
@@ -12,7 +12,9 @@ PLAN = Path(__file__).resolve().parents[2] / "context" / "PLAN.md"
 
 def main(argv):
     sys.stdout.reconfigure(encoding="utf-8")
-    if len(argv) != 1 or not re.fullmatch(r"[Ii]?\d+", argv[0]):
+    no_header = "--no-header" in argv
+    argv = [a for a in argv if a != "--no-header"]
+    if len(argv) != 1 or not re.fullmatch(r"[Ii]?\d+[a-z]?", argv[0]):
         sys.exit(__doc__)
     key = "I" + argv[0].lstrip("Ii")
 
@@ -20,12 +22,13 @@ def main(argv):
     header_end = next((i for i, l in enumerate(lines) if l.startswith("## Increments")), len(lines))
     start = next((i for i, l in enumerate(lines) if l.startswith(f"### {key} ")), None)
     if start is None:
-        found = re.findall(r"^### (I\d+) ", "\n".join(lines), re.MULTILINE)
+        found = re.findall(r"^### (I\d+[a-z]?) ", "\n".join(lines), re.MULTILINE)
         sys.exit(f"{key} not found. Available: {', '.join(found)}")
-    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("### I")), len(lines))
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith(("### I", "## "))), len(lines))
 
-    print("\n".join(lines[:header_end]).rstrip())
-    print("\n## Increments\n")
+    if not no_header:
+        print("\n".join(lines[:header_end]).rstrip())
+        print("\n## Increments\n")
     print("\n".join(lines[start:end]).rstrip())
     return 0
 

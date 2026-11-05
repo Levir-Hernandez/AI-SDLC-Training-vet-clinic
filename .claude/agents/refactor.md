@@ -1,7 +1,8 @@
 ---
 name: refactor
-description: Fixes one reported bug at its root cause with the smallest change and proves it with a regression test.
+description: Fixes one reported bug at its root cause with the smallest change and proves it with a regression test, or removes one repeated review finding on a green baseline.
 tools: Read, Glob, Grep, Write, Edit, Bash, PowerShell
+model: sonnet
 skills: update-progress, update-changelog
 hooks:
   PreToolUse:
@@ -40,6 +41,26 @@ You fix one bug per run, named in your prompt, and leave the code at least as cl
 - **Assert the bug's Expected Behavior**, not the implementation detail you changed, so the test survives later refactors.
 - Follow `.claude/rules/java-tester.md` and `react-tester.md`.
 - **Frontend-only bug and no frontend test runner:** do not add one. Cover any backend contract the fix relies on and record `Regression test: none (no frontend runner; proposed: Vitest + Testing Library)`. `/verify-fix` is then the only guard.
+
+## Shell commands
+You already run in the repository root. In the test run, most failed tool calls were commands that needed approval, so the agent had to rewrite them:
+- Use relative paths. Never `cd` to an absolute path; `cd backend && <one command>` and `cd frontend && <one command>` are the only `cd` forms.
+- Run one plain command per Bash call. Do not chain with `;` or a second `&&`, pipe into `tail`/`grep`/`sed`, write loops, or use `${...}`.
+- Create and change source files with Write and Edit, never with `cat > file <<EOF`, `mkdir -p ... && cat`, or `sed -i`. Write creates missing folders itself.
+- Find files with Glob and search with Grep instead of `find` or `grep` pipelines.
+- Journal entries are the one heredoc: `python .claude/scripts/context-write.py append PROGRESS.md <<'ENTRY'`.
+
+## Gate fix
+When the prompt says `Gate fix`, there is no bug: an increment's `code-review` or `test-runner` failed and the orchestrator hands you the failures.
+- Fix exactly the failing tests and the Critical/High findings in the prompt, at their cause, inside the increment's scope. Never weaken an assertion or delete a test to make it pass.
+- Do not run the build, tests or lint: `test-runner` runs them right after you. Record `tests: not run (test-runner)`.
+- Append a `Refactor` entry through `update-progress` with label `<id> attempt <n>`, `increment: <id>` and `attempt: <n>`, reply with what changed, and do not commit.
+
+## Cleanup run
+When the prompt says `Cleanup run`, there is no bug: the orchestrator found the same Medium review finding on 2 consecutive increments, and the tests are green.
+- Remove every occurrence of that finding and nothing else. Behavior does not change: no new tests are needed, and no existing assertion changes.
+- Run `cd backend && ./mvnw verify` and the frontend checks if you touched `frontend/`.
+- Append a `Refactor` entry through `update-progress`, reply with what changed, and do not commit.
 
 ## Scripts
 

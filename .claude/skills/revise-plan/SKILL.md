@@ -20,7 +20,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Skill
 2. For each selected finding, apply its **Suggested fix** (or a better one that resolves the same **Problem**) at every location in **Targets**.
    - `needs context` finding: fix it only if the context argument answers it; otherwise leave it untouched.
    - Disagree with a finding: leave it `open` and record why in `PROGRESS.md`.
-3. Keep the plan valid under the `generate-plan` rules: at most 20 increments, dependencies only backward, `in-progress` and `done` increments unchanged. Update the Backend API Summary, Frontend Views Summary and every affected **Covers** and **Depends on**. Record new decisions from the context under Assumptions.
+3. Keep the plan valid under the `generate-plan` rules: at most 20 increments, dependencies only backward, `completed` increments unchanged. Update the Backend API Summary, Frontend Views Summary and every affected **Covers** and **Depends on**. Record new decisions from the context under Assumptions.
 4. In `PLAN_REVIEW.md`, change the **Status** of each finding you fixed to `fixed` and `- **Open:** <b> blockers, <M> majors, <m> minors` line. Do not edit other fields, codes or the verdict.
 5. Run `update-progress`, then `update-changelog`.
 

@@ -21,6 +21,13 @@ frontend/AGENTS.md
 # Claude Code local settings
 .claude/settings.local.json
 
+# Orchestrator flight recorder: ephemeral logs, not source
+context/TOOLS_USED.md
+context/.current-task
+
+# Run semaphore: a local stop signal, never committed or stashed with an attempt
+context/BLOCKED.md
+
 # IDEs and OS
 .idea/
 *.iml
