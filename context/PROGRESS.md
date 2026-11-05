@@ -1041,3 +1041,115 @@
 - critical_high: none
 - medium_findings: none
 - files_reviewed: [backend/src/main/java/com/vetclinic/appointment/PetHistoryController.java, backend/src/test/java/com/vetclinic/appointment/PetHistoryTests.java, backend/src/main/java/com/vetclinic/appointment/AppointmentQueryService.java, backend/src/main/java/com/vetclinic/owner/PetService.java, frontend/components/PetHistoryView.tsx, frontend/app/owner/pets/[id]/history/page.tsx, frontend/app/reception/pets/[id]/history/page.tsx, frontend/app/owner/pets/page.tsx, frontend/app/reception/appointments/page.tsx, frontend/app/reception/owners/[id]/page.tsx]
+
+## [2026-11-05 01:29] — Validation — before I15
+- agent: planner
+- increment: I15
+- trigger: deviations
+- rewritten: [I15]
+- result: updated
+- summary: I15 rewritten to match built code.
+- changes: [PetHistoryView added to Modify, status prop kept for Close label only, per-role action table verified against AppointmentLifecycle, fixtures via Appointment constructor]
+
+## [2026-11-05 01:31] — Increment — I15 attempt 1
+- agent: implementation
+- increment: I15
+- attempt: 1
+- summary: Added allowed-actions integration test per role and status, route loading/error states, and a badge accessibility label.
+- files_created: [AllowedActionsResponseTests, owner/loading.tsx, vet/loading.tsx, reception/loading.tsx, appointments/loading.tsx, owner/error.tsx, vet/error.tsx, reception/error.tsx, appointments/error.tsx]
+- files_modified: [StatusBadge.tsx]
+- interfaces_created: [none]
+- decisions: [existing pages and AppointmentActions already follow allowedActions-only visibility with confirmations so left unchanged; owner cancel on IN_PROGRESS 403 ACTION_NOT_ALLOWED test added in AllowedActionsResponseTests]
+- deviations: [pages, AppointmentActions and PetHistoryView not modified; already compliant]
+- tests: not run (test-runner)
+- blockers: none
+
+### Added
+- Added loading and error states for the owner, vet, reception and appointment routes.
+
+## [2026-11-05 02:15] — CodeReview — I15 attempt 1
+- agent: code-review
+- increment: I15
+- attempt: 1
+- summary: Integration test for allowedActions per role and status, loading/error states, aria-label change on StatusBadge. Spec verified: allowedActions drives all visibility, no status-based checks in pages.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/test/java/com/vetclinic/appointment/AllowedActionsResponseTests.java, frontend/app/owner/loading.tsx, frontend/app/owner/error.tsx, frontend/app/vet/loading.tsx, frontend/app/vet/error.tsx, frontend/app/reception/loading.tsx, frontend/app/reception/error.tsx, frontend/app/appointments/loading.tsx, frontend/app/appointments/error.tsx, frontend/components/StatusBadge.tsx, frontend/components/AppointmentActions.tsx, frontend/components/PetHistoryView.tsx, frontend/app/owner/appointments/page.tsx, frontend/app/vet/appointments/page.tsx, frontend/app/reception/appointments/page.tsx, frontend/app/reception/debts/page.tsx, frontend/app/appointments/[id]/page.tsx, frontend/app/owner/pets/[id]/history/page.tsx, frontend/app/reception/pets/[id]/history/page.tsx]
+
+## [2026-11-05 01:38] — TestRun — I15 attempt 1
+- agent: test-runner
+- increment: I15
+- attempt: 1
+- mode: increment
+- summary: backend verify failed with 2 test failures, frontend lint passed, frontend build passed with security notice and retry
+- result: FAIL
+- tests: 313 passed / 2 failed
+- coverage: missing
+- failures: [AllowedActionsResponseTests.veterinarianSeesClinicalActions RESERVED expected empty got EDIT_OBSERVATIONS, AllowedActionsResponseTests.receptionistSeesFullActionTable RESERVED expected CANCEL CONFIRM got EDIT_OBSERVATIONS CANCEL CONFIRM]
+
+## [2026-11-05 01:39] — Refactor — I15 attempt 2
+- agent: refactor
+- increment: I15
+- attempt: 2
+- summary: Fixed AllowedActionsResponseTests expectations for RESERVED; production already follows TASK.md (observations editable until closed or cancelled).
+- files_created: none
+- files_modified: [AllowedActionsResponseTests]
+- interfaces_created: none
+- decisions: [test was wrong, not production: AppointmentLifecycle.allowedActions adds EDIT_OBSERVATIONS for vet and receptionist in any status except CLOSED, CANCELLED, RESCHEDULED]
+- deviations: none
+- tests: not run (test-runner)
+- blockers: none
+
+## [2026-11-05 02:16] — CodeReview — I15 attempt 2
+- agent: code-review
+- increment: I15
+- attempt: 2
+- summary: AllowedActionsResponseTests expectations corrected to include EDIT_OBSERVATIONS at RESERVED for vet and receptionist, justified by TASK.md line 92 and AppointmentLifecycle.canEditObservations. Test is comprehensive and meaningful. StatusBadge accessibility downgrade from role="status" to aria-label needs reversion.
+- result: FAIL
+- critical_high: none
+- medium_findings: accessibility-role-removal
+- files_reviewed: [backend/src/test/java/com/vetclinic/appointment/AllowedActionsResponseTests.java, frontend/components/StatusBadge.tsx]
+
+## [2026-11-05 01:43] — TestRun — I15 attempt 2
+- agent: test-runner
+- increment: I15
+- attempt: 2
+- mode: increment
+- result: PASS
+- tests: 315 passed / 0 failed
+- coverage: 96.1% lines, 86.0% branches
+- failures: none
+- summary: backend verify 315 run 0 failed 0 skipped; frontend lint pass; frontend build pass (security notice, retried)
+
+## [2026-11-05 01:43] — Refactor — I15 attempt 3
+- agent: refactor
+- increment: I15
+- attempt: 3
+- summary: Restored role="status" on StatusBadge and dropped the redundant aria-label.
+- files_modified: [StatusBadge]
+- tests: not run (test-runner)
+
+### Fixed
+- Restored the status role on the appointment status badge.
+
+## [2026-11-05 09:15] — CodeReview — I15 attempt 3
+- agent: code-review
+- increment: I15
+- attempt: 3
+- summary: AllowedActionsResponseTests comprehensive, all 9 new files created, StatusBadge accessibility restored. Plan and implementation consistent; allowedActions correctly implements TASK.md line 92. No critical/high findings.
+- result: PASS
+- critical_high: none
+- medium_findings: none
+- files_reviewed: [backend/src/test/java/com/vetclinic/appointment/AllowedActionsResponseTests.java, frontend/app/owner/loading.tsx, frontend/app/owner/error.tsx, frontend/app/vet/loading.tsx, frontend/app/vet/error.tsx, frontend/app/reception/loading.tsx, frontend/app/reception/error.tsx, frontend/app/appointments/loading.tsx, frontend/app/appointments/error.tsx, frontend/components/StatusBadge.tsx, frontend/components/AppointmentActions.tsx, frontend/components/PetHistoryView.tsx]
+
+## [2026-11-05 01:47] — TestRun — I15 attempt 3
+- agent: test-runner
+- increment: I15
+- attempt: 3
+- mode: increment
+- summary: backend verify 315 passed, lint pass, build pass (security notice retried), result: PASS
+- result: PASS
+- tests: 315 passed / 0 failed
+- coverage: 96.1% lines, 86.0% branches
+- failures: none

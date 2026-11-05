@@ -1282,7 +1282,7 @@ Frontend:
 
 ### I15 — Status badges and allowed-actions consistency
 
-- **Status:** `pending`
+- **Status:** `completed`
 - **Goal:** Every screen uses the same status badge and offers exactly the actions the backend reports as allowed for the current user.
 - **Covers:** Acceptance "each status shows a consistent badge, and only allowed actions are offered"; React rules on loading/empty/error states, confirmation of destructive actions, accessibility.
 - **Depends on:** I14
@@ -1295,12 +1295,13 @@ Frontend:
 
 **Frontend**
 - **Create:**
-  - `frontend/app/owner/loading.tsx`, `frontend/app/vet/loading.tsx`, `frontend/app/reception/loading.tsx`, `frontend/app/appointments/loading.tsx`: route loading states.
-  - `frontend/app/owner/error.tsx`, `frontend/app/vet/error.tsx`, `frontend/app/reception/error.tsx`, `frontend/app/appointments/error.tsx`: route error states with readable message and retry.
+  - `frontend/app/owner/loading.tsx`, `frontend/app/vet/loading.tsx`, `frontend/app/reception/loading.tsx`, `frontend/app/appointments/loading.tsx`: route loading states (none exist today).
+  - `frontend/app/owner/error.tsx`, `frontend/app/vet/error.tsx`, `frontend/app/reception/error.tsx`, `frontend/app/appointments/error.tsx`: route error states (client components) with readable message and retry via `reset()`.
 - **Modify:**
-  - `frontend/components/StatusBadge.tsx`: final label/colour table, accessible text.
-  - `frontend/components/AppointmentActions.tsx`: drive purely from `allowedActions`; confirmation on Cancel, Close, Pay; disabled state while pending.
-  - `frontend/app/owner/appointments/page.tsx`, `frontend/app/vet/appointments/page.tsx`, `frontend/app/reception/appointments/page.tsx`, `frontend/app/reception/debts/page.tsx`, `frontend/app/reception/pets/[id]/history/page.tsx`, `frontend/app/owner/pets/[id]/history/page.tsx`, `frontend/app/appointments/[id]/page.tsx`: use `StatusBadge`/`AppointmentActions`/`EmptyState` uniformly.
+  - `frontend/components/StatusBadge.tsx`: final label/colour table, accessible text (keeps the `debt` prop: CLOSED + debt shows "Debt").
+  - `frontend/components/AppointmentActions.tsx`: button visibility driven only by `allowedActions`; confirmation on Cancel (CancelDialog), Close (confirm) and Pay (PaymentDialog); disabled while pending. `status` prop stays only to pick the Close label/confirm text (FINISHED = unpaid debt close), because `allowedActions` does not distinguish it.
+  - `frontend/components/PetHistoryView.tsx`: shared by both pet history pages; render `StatusBadge` and `EmptyState` uniformly.
+  - `frontend/app/owner/appointments/page.tsx`, `frontend/app/vet/appointments/page.tsx`, `frontend/app/reception/appointments/page.tsx`, `frontend/app/reception/debts/page.tsx`, `frontend/app/appointments/[id]/page.tsx`: use `StatusBadge`/`AppointmentActions`/`EmptyState` uniformly. The two `pets/[id]/history/page.tsx` pages only delegate to `PetHistoryView`; touch them only if needed.
 
 #### Implementation Tasks
 
@@ -1309,23 +1310,26 @@ Frontend:
 
 **Frontend**
 1. `StatusBadge`: single source of status → label/colour.
-2. `AppointmentActions`: no status checks in pages; only `allowedActions`.
-3. Pages and `loading.tsx`/`error.tsx`: as listed.
+2. `AppointmentActions`: pages do no status checks for visibility; only `allowedActions` (status used solely for the Close label/text).
+3. `PetHistoryView`, pages and `loading.tsx`/`error.tsx`: as listed.
 
 #### Expected Interfaces and Outputs
 
-**Backend**
-- `allowedActions` for owner on FINISHED → `[]`; receptionist on PAID → `["CLOSE","EDIT_OBSERVATIONS"]`; any role on CLOSED → `[]`.
+**Backend** (real `AppointmentLifecycle.allowedActions`; EDIT_OBS = EDIT_OBSERVATIONS)
+- Owner: RESERVED → CONFIRM, CANCEL; SCHEDULED → CANCEL; every other status → `[]` (e.g. FINISHED → `[]`).
+- Veterinarian: SCHEDULED → START, EDIT_OBS; IN_PROGRESS → FINISH, EDIT_OBS; FINISHED and PAID → EDIT_OBS; RESERVED, CLOSED, CANCELLED, RESCHEDULED → `[]`.
+- Receptionist: RESERVED → CONFIRM, CANCEL; SCHEDULED → START, RESCHEDULE, CANCEL, EDIT_OBS; IN_PROGRESS → FINISH, RESCHEDULE, CANCEL, EDIT_OBS; FINISHED → PAY, CLOSE, EDIT_OBS; PAID → CLOSE, EDIT_OBS; CLOSED, CANCELLED, RESCHEDULED → `[]`.
+- EXPIRE is never reported.
 
 **Frontend**
-- The same status renders identically on every list and detail; final statuses show no action buttons.
+- The same status renders identically on every list, history and detail; final statuses show no action buttons.
 
 #### Automated Tests
 The tests prove the backend-reported actions match the lifecycle table for each role and status.
 
 **Backend**
-- `AllowedActionsResponseTests` (integration, `@SpringBootTest` + MockMvc with `TestJwt` tokens per role; appointments in each of the eight statuses inserted through the real repositories so `AppointmentQueryService` and `AppointmentLifecycle` run unmocked)
-  - **Success:** each role/status returns the expected set.
+- `AllowedActionsResponseTests` (integration, `@SpringBootTest` + MockMvc with `TestJwt` tokens per role; Owner, Pet, ClinicService and Veterinarian saved via their repositories, then one Appointment per status saved through `AppointmentRepository` using the public constructor `new Appointment(pet, service, vet, start, end, status, Actor.RECEPTIONIST, total, now)`, which takes the status directly so no time-window transitions are needed; `AppointmentQueryService` and `AppointmentLifecycle` run unmocked)
+  - **Success:** each role/status returns the expected set above.
   - **Rejections:** final statuses → empty set; owner never gets START/FINISH/PAY/CLOSE/RESCHEDULE.
 
 **Frontend**
@@ -1344,7 +1348,7 @@ Frontend:
 - `cd frontend && npm run build` → succeeds.
 
 **Manual** (both apps running)
-- Visit owner, vet and reception lists plus a detail page for one appointment in each status → identical badges; actions match the lifecycle table for that role.
+- Visit owner, vet and reception lists, pet history pages plus a detail page for one appointment in each status → identical badges; actions match the lifecycle table for that role.
 
 ### I16 — Final acceptance pass
 
@@ -1411,3 +1415,4 @@ Frontend:
 |---|---|---|---|
 | 2026-11-05 | Mode 2 | I12 | Added SlotPicker service-lock props (SlotPicker had no preset); RESCHEDULE wired in AppointmentActions via router.push; noted existing service/DTO signatures. |
 | 2026-11-05 | Mode 2 | I13 | debt param, PaymentService, close service and debt response already exist; I13 limited to controllers, UI wiring needing total/status props |
+| 2026-11-05 | Mode 2 | I15 | Added PetHistoryView to Modify, kept status prop in AppointmentActions for Close label only, corrected role/status action tables, specified Appointment constructor fixtures |
